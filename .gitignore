@@ -1,1 +1,6 @@
 /venv/
+
+/api/src/.env
+/api/src/node_modules
+/api/src/*.pem
+/api/src/config/*.json
