@@ -4,8 +4,11 @@ const Regions = require('../models/regions.model');
 const Locations = require('../models/locations.model');
 const passwords = require('../services/passwords');
 const tools = require('../services/tools');
+const StoresService = require('../services/stores.service')
+const {NonExistentRegionException} = require("../exceptions/regions");
+const {NonExistentBrandException} = require("../exceptions/brands");
 
-exports.create = async function (req, res) {
+const create = async function (req, res) {
     let rules = {
         name: "required|string",
         url: "required|string",
@@ -27,20 +30,17 @@ exports.create = async function (req, res) {
         else {
             const brand = await Brands.getById(req.body.brandId);
             if (brand != null) {
-                const region = await Regions.getById(req.body.regionId);
-                if (req.body.regionId != null && region == null) {
-                    res.statusMessage = "Field regionId doesn't reference a region";
-                    res.status(400).send();
-                }
-                else {
-                    const storeId = await Stores.insert(req.body);
-                    if (req.body.regionId != null) {
-                        const locationId = await Locations.insert(req.body, storeId);
-                        if (locationId == null) {
-                            throw Error("Error inserting location");
-                        }
-                    }
+                try {
+                    const storeId = StoresService.create(req.body)
                     res.status(201).json(tools.toCamelCase({storeId}));
+                }
+                catch (err) {
+                    if (err instanceof NonExistentRegionException) {
+
+                    }
+                    else if (err instanceof NonExistentBrandException) {
+
+                    }
                 }
             }
             else {
@@ -54,6 +54,8 @@ exports.create = async function (req, res) {
         res.status(500).send()
     }
 };
+exports.create = create;
+
 exports.getAll = async function (req, res) {
     try {
         const stores = await Stores.getAll(req.query);
@@ -138,6 +140,7 @@ exports.modify = async function (req, res) {
         res.status(500).send()
     }
 };
+
 exports.delete = async function (req, res) {
     try {
         const store = await Stores.getOne(req.params.storeId);

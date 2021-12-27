@@ -105,3 +105,34 @@ exports.delete = async function (storeId) {
         throw (err);
     }
 };
+
+exports.getByInternalId = async function (internalId, brandId) {
+    const sql = `SELECT SL.store_loc_id as store_id,
+                        SL.url, 
+                        SL.name,
+                        Sl.internal_id,
+                        S.store_id as brand_id,
+                        S.name as brand_name,
+                        S.url as brand_url,
+                        L.lattitude as loc_lat,
+                        L.longitude as loc_lng,
+                        L.address,
+                        L.postcode,
+                        R.lattitude as reg_lat,
+                        R.longitude as reg_lng,
+                        R.name as region_name
+                 FROM store_location SL
+                      JOIN store S ON SL.store_id = S.store_id
+                      LEFT JOIN location L ON SL.store_loc_id = L.store_loc_id
+                      LEFT JOIN region R ON L.region_id = R.region_id
+                 WHERE SL.internal_id = ? AND S.store_id = ?
+                      `;
+    try {
+        const store = await db.getPool().query(sql, [internalId, brandId]);
+        return store.length !== 1 ? null : tools.toCamelCase(store[0]);
+    }
+    catch (err) {
+        tools.logSqlError(err);
+        throw (err);
+    }
+};

@@ -2,12 +2,12 @@ const Items = require('../models/items.model');
 const Categories = require('../models/categories.model');
 const Subcategories = require('../models/subcategories.model');
 const Images = require('../models/images.model');
-const Locations = require('../models/locations.model');
-const passwords = require('../services/passwords');
-const Brands = require('../models/brands.model');
 const tools = require('../services/tools');
 const Prices = require('../models/itemPrices.model');
 const validator = require('../services/validator');
+const StoresService = require("../services/stores.service");
+const ItemsService = require("../services/items.service");
+const BrandsService = require("../services/brands.service");
 
 exports.create = async function (req, res) {
     const rules = {
@@ -422,6 +422,84 @@ exports.combineItems = async function (req, res) {
         // Combine the items
         await Items.combineItems(item.sku, itemDuplicate.sku, req.body, itemDuplicate.hasImage);
         res.status(200).send();
+    }
+    catch (err) {
+        if (!err.hasBeenLogged) {console.log(err)}
+        res.status(500).send()
+    }
+};
+
+/**
+ * Takes an item and price from the body of the request, and does the following.
+ *  - Checks the store exists, creates if it doesn't.
+ *  - Checks the Item exists, and creates if it doesn't.
+ *  - Checks the ItemPrice exists, and creates if it doesn't.
+ */
+exports.setItemAndPrice = async function(req, res) {
+    try {
+
+        // check the brand exists
+        const brandId = req.params.brandId;
+        const brand = await BrandsService.get(brandId);
+        if (!brand) {
+            res.statusMessage = `Brand with ID ${brandId} doesn't exist`;
+            res.status(404).send();
+        }
+
+        // check body provided is valid
+        let validationMessage = validator.checkAgainstSchema(
+                'components/schemas/ItemStoresAndPrice',
+                req.body);
+        if (validationMessage !== true) {
+            res.statusMessage = validationMessage;
+            res.status(400).send();
+        }
+
+        // get data from request body
+        const body = req.body;
+        const newStore = body.store;
+        const newItemPrice = body.itemPrice;
+        const newItem = body.item;
+        const newItemImage = newItem.image;
+        delete newItem.image;
+
+        // create or get the store
+        let storeId = (await StoresService.getStoreByInternalId(newStore.internalId, brandId)).storeId;
+        let storeCreated = false;
+        if (!storeId) {
+            storeId = await StoresService.create(newStore);
+            storeCreated = true;
+        }
+
+        // create or get the item
+        let sku = await ItemsService.getItemByInternalSku(newItemPrice.internalSku, brandId);
+        let itemCreated = false;
+        if (!sku) {
+            sku = await ItemsService.create(newItem);
+            itemCreated = true;
+        }
+
+        // upload the item image if there was one provided, and the item didn't already have one
+        const item = await ItemsService.getBySku(sku);
+        let imageCreated = false;
+        if (item.hasImage && newItemImage) {
+            imageCreated = true;
+            await ItemsService.setImage(sku, newItemImage);
+        }
+
+        // update price
+        const priceCreated = await ItemsService.setOrUpdatePrice(sku, storeId, newItemPrice);
+
+        // send response
+        const code = storeCreated || itemCreated || priceCreated || imageCreated ? 201 : 200;
+        const resBody = {
+            item: {sku, created: itemCreated},
+            store: {id: storeId, created: storeCreated},
+            itemPrice: {created: priceCreated},
+            image: {created: imageCreated}
+        };
+        res.status(code).json(resBody);
+
     }
     catch (err) {
         if (!err.hasBeenLogged) {console.log(err)}

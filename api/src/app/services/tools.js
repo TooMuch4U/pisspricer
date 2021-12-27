@@ -142,7 +142,6 @@ exports.mapObject = function (data, mappings) {
 
 };
 
-
 exports.onlyInclude = function (data, includeKeys) {
     let newData = {};
     let keys = Object.keys(data);

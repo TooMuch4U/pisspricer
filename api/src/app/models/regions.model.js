@@ -86,3 +86,15 @@ exports.delete = async function (regionId) {
         throw (err);
     }
 };
+
+exports.getByName = async function (region) {
+    const sql = `SELECT * FROM region WHERE name = ?`;
+    try {
+        const result = await db.getPool().query(sql, [region]);
+        return result.length !== 1 ? null : tools.toCamelCase(result[0]);
+    }
+    catch (err) {
+        tools.logSqlError(err);
+        throw (err);
+    }
+};

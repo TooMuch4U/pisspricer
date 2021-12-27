@@ -6,6 +6,13 @@ ajv.addSchema(swaggerApi, 'swagger');
 ajv.addFormat('password', /.*/);
 ajv.addFormat('binary', /.*/);
 
+/**
+ * Returns true if the
+ * @param schemaPath
+ * @param data
+ * @param requireNotEmpty
+ * @returns {string|boolean|*}
+ */
 exports.checkAgainstSchema = function (schemaPath, data, requireNotEmpty = true) {
     const schemaRef = 'swagger#/' + schemaPath;
     try {

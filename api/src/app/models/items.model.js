@@ -450,3 +450,36 @@ exports.combineItems = async function (sku, duplicateSku, data, deleteDuplicateI
         conn.release();
     }
 };
+
+exports.getByInternalSku = async function (internalSku, brandId) {
+    const sqlItem = `SELECT I.*, 
+                            C.name as category,
+                            S.name as subcategory
+                     FROM item I 
+                          LEFT JOIN category C ON I.category_id = C.category_id
+                          LEFT JOIN subcategory S ON I.subcategory_id = S.subcategory_id
+                     WHERE sku = (SELECT internal_sku FROM location_stocks_item LS WHERE LS.internal_sku = ? 
+                        AND LS.store_loc_id in (SELECT store_loc_id FROM store_location SL WHERE SL.store_id = ?))`;
+    const sqlBarcodes = `SELECT ean FROM item_barcode WHERE sku = (SELECT internal_sku FROM location_stocks_item LS WHERE LS.internal_sku = ? 
+                        AND LS.store_loc_id in (SELECT store_loc_id FROM store_location SL WHERE SL.store_id = ?)) `;
+    try {
+        const items = await db.getPool().query(sqlItem, [internalSku, brandId]);
+        if (items.length < 1) {
+            return null;
+        }
+        else {
+            const barcodes = await db.getPool().query(sqlBarcodes, [internalSku, brandId]);
+            let item = items[0];
+            item.barcodes = [];
+            for (let i = 0; i < barcodes.length; i++) {
+                item.barcodes.push(Object.values(barcodes[i])[0]);
+            }
+
+            return tools.toCamelCase(item)
+        }
+    }
+    catch (err) {
+        tools.logSqlError(err);
+        throw (err)
+    }
+};
