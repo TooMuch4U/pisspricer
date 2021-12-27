@@ -7,10 +7,14 @@ Place a mysql dump file in the mysql-dump directory.
 ## Usage / Workflow
 1. Start the container
     ```bash
-    docker-compose up
+    docker-compose up -d
     ```
 2. Use the database
-3. Delete the container
+3. Stop the container
+   ```bash
+   docker-compose stop
+   ```
+5. Delete the container (maybe)
    ```bash
    docker-compose rm -f
    ```

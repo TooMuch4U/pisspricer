@@ -2325,6 +2325,68 @@
         }
       }
     },
+    "/brands/{brandId}/fullitem": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "brandId",
+          "schema": {
+            "type": "integer"
+          },
+          "required": true,
+          "description": "Brand Id"
+        }
+      ],
+      "put": {
+        "summary": "Updates, or creates, a store, item and price",
+        "tags": [
+          "Brand",
+          "Items",
+          "Store",
+          "Item in Store"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Takes an entire store, item and itemprice in the request body. The internalId of the store and item will be used to check if these already exist. The store/item won't be updated if it already exists. If the item doesn't have an image and an image is provided, this will be set. The item price will be updated regardless if it already exists.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ItemStoreAndPrice"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/users": {
       "get": {
         "summary": "Gets all users",
@@ -2757,6 +2819,126 @@
   ],
   "components": {
     "schemas": {
+      "ItemStoreAndPrice": {
+        "title": "New Item Store and Price",
+        "type": "object",
+        "required": [
+          "item",
+          "store",
+          "itemPrice"
+        ],
+        "properties": {
+          "item": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/components/schemas/Item/properties/name"
+              },
+              "brand": {
+                "$ref": "#/components/schemas/Item/properties/brand"
+              },
+              "stdDrinks": {
+                "$ref": "#/components/schemas/Item/properties/stdDrinks"
+              },
+              "alcoholContent": {
+                "$ref": "#/components/schemas/Item/properties/alcoholContent"
+              },
+              "volumeEach": {
+                "$ref": "#/components/schemas/Item/properties/volumeEach"
+              },
+              "packSize": {
+                "$ref": "#/components/schemas/Item/properties/packSize"
+              },
+              "category": {
+                "type": "string",
+                "example": "Beer"
+              },
+              "image": {
+                "type": "string"
+              }
+            }
+          },
+          "store": {
+            "$ref": "#/components/schemas/StoreCreate"
+          },
+          "itemPrice": {
+            "$ref": "#/components/schemas/ItemPrice"
+          }
+        }
+      },
+      "ItemPrice": {
+        "type": "object",
+        "required": [
+          "price",
+          "internalSku"
+        ],
+        "properties": {
+          "price": {
+            "type": "number",
+            "minLength": 1,
+            "example": 21.99
+          },
+          "salePrice": {
+            "type": "number",
+            "minLength": 1,
+            "example": 20.99,
+            "nullable": true
+          },
+          "internalSku": {
+            "type": "string",
+            "minLength": 1,
+            "example": "speight-123a"
+          }
+        }
+      },
+      "StoreCreate": {
+        "type": "object",
+        "required": [
+          "name",
+          "internalId",
+          "location"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "example": "New World Wanaka"
+          },
+          "internalId": {
+            "type": "string"
+          },
+          "location": {
+            "type": "object",
+            "required": [
+              "lattitude",
+              "longitude",
+              "address",
+              "postcode",
+              "region"
+            ],
+            "properties": {
+              "lattitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "address": {
+                "type": "string"
+              },
+              "postcode": {
+                "type": "number"
+              },
+              "region": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
       "Item": {
         "title": "Item Base Body",
         "type": "object",

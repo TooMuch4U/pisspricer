@@ -448,11 +448,12 @@ exports.setItemAndPrice = async function(req, res) {
 
         // check body provided is valid
         let validationMessage = validator.checkAgainstSchema(
-                'components/schemas/ItemStoresAndPrice',
+                'components/schemas/ItemStoreAndPrice',
                 req.body);
         if (validationMessage !== true) {
             res.statusMessage = validationMessage;
             res.status(400).send();
+            return
         }
 
         // get data from request body
@@ -472,23 +473,23 @@ exports.setItemAndPrice = async function(req, res) {
         }
 
         // create or get the item
-        let sku = await ItemsService.getItemByInternalSku(newItemPrice.internalSku, brandId);
+        let item = await ItemsService.getItemByInternalSku(newItemPrice.internalSku, brandId);
         let itemCreated = false;
-        if (!sku) {
-            sku = await ItemsService.create(newItem);
+        if (!item) {
+            const sku = await ItemsService.create(newItem);
+            item = await ItemsService.getBySku(sku);
             itemCreated = true;
         }
+        let sku = item.sku;
 
-        // upload the item image if there was one provided, and the item didn't already have one
-        const item = await ItemsService.getBySku(sku);
         let imageCreated = false;
         if (item.hasImage && newItemImage) {
             imageCreated = true;
-            await ItemsService.setImage(sku, newItemImage);
+            await ItemsService.setImage(item.sku, newItemImage);
         }
 
         // update price
-        const priceCreated = await ItemsService.setOrUpdatePrice(sku, storeId, newItemPrice);
+        const priceCreated = await ItemsService.setOrUpdatePrice(item.sku, storeId, newItemPrice);
 
         // send response
         const code = storeCreated || itemCreated || priceCreated || imageCreated ? 201 : 200;

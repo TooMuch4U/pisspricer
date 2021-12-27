@@ -21,8 +21,7 @@ async function create(newItem) {
     let barcodeData = { "ean": barcode };
     delete newItem.barcode;
     let slugName = newItem.name + (typeof newItem.volumeEach == 'undefined' ? '' : newItem.volumeEach);
-    // let data = tools.onlyInclude(req.body, Object.keys(rules));
-    return await Items.insert(tools.toUnderscoreCase(data), barcodeData, slugName);
+    return await Items.insert(tools.toUnderscoreCase(newItem), barcodeData, slugName);
 }
 exports.create = create;
 

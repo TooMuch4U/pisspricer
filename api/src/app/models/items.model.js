@@ -458,9 +458,9 @@ exports.getByInternalSku = async function (internalSku, brandId) {
                      FROM item I 
                           LEFT JOIN category C ON I.category_id = C.category_id
                           LEFT JOIN subcategory S ON I.subcategory_id = S.subcategory_id
-                     WHERE sku = (SELECT internal_sku FROM location_stocks_item LS WHERE LS.internal_sku = ? 
+                     WHERE sku = (SELECT distinct sku FROM location_stocks_item LS WHERE LS.internal_sku = ? 
                         AND LS.store_loc_id in (SELECT store_loc_id FROM store_location SL WHERE SL.store_id = ?))`;
-    const sqlBarcodes = `SELECT ean FROM item_barcode WHERE sku = (SELECT internal_sku FROM location_stocks_item LS WHERE LS.internal_sku = ? 
+    const sqlBarcodes = `SELECT ean FROM item_barcode WHERE sku = (SELECT distinct sku FROM location_stocks_item LS WHERE LS.internal_sku = ? 
                         AND LS.store_loc_id in (SELECT store_loc_id FROM store_location SL WHERE SL.store_id = ?)) `;
     try {
         const items = await db.getPool().query(sqlItem, [internalSku, brandId]);

@@ -1508,9 +1508,9 @@ paths:
       summary: "Updates, or creates, a store, item and price"
       tags:
         - Brand
-        - Item
+        - Items
         - Store
-        - ItemPrice
+        - Item in Store
       security:
         - bearerAuth: []
       description: "Takes an entire store, item and itemprice in the request body. The internalId of the store and item will be used to check if these already exist. The store/item won't be updated if it already exists. If the item doesn't have an image and an image is provided, this will be set. The item price will be updated regardless if it already exists."
@@ -1818,6 +1818,10 @@ components:
     ItemStoreAndPrice:
       title: New Item Store and Price
       type: object
+      required:
+        - item
+        - store
+        - itemPrice
       properties:
         item:
           type: object
