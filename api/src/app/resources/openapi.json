@@ -2899,7 +2899,8 @@
         "required": [
           "name",
           "internalId",
-          "location"
+          "location",
+          "url"
         ],
         "properties": {
           "name": {
@@ -2909,6 +2910,10 @@
           },
           "internalId": {
             "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://newworld.co.nz"
           },
           "location": {
             "type": "object",

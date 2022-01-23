@@ -10,7 +10,7 @@ const Regions = require("../models/regions.model");
 const create = async function (location, storeId) {
     // create or get region
     const regionId = (await createOrGetRegion(location.region)).regionId;
-    const locationId = await Locations.insert(location, storeId);
+    await Locations.insert({regionId, ...location}, storeId);
 }
 exports.create = create;
 
@@ -22,7 +22,8 @@ exports.create = create;
 const createOrGetRegion = async function (newRegion) {
     let region = await Regions.getByName(newRegion);
     if (!region) {
-        region = await Regions.insert({name: newRegion});
+        await Regions.insert({name: newRegion});
+        region = await Regions.getByName(newRegion);
     }
     return region
 };

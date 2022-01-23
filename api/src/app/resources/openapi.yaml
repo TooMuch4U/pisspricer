@@ -1876,6 +1876,7 @@ components:
         - name
         - internalId
         - location
+        - url
       properties:
         name:
           type: string
@@ -1883,6 +1884,9 @@ components:
           example: "New World Wanaka"
         internalId:
           type: string
+        url:
+          type: string
+          example: 'https://newworld.co.nz'
         location:
           type: object
           required:

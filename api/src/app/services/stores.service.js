@@ -6,11 +6,12 @@ const {NonExistentRegionException} = require("../exceptions/regions");
 const BrandsService = require("../services/brands.service")
 
 /**
- * Expects a brandId in the body.
+ * Creates a new store
  * @param newStore Object for the stores parameters.
+ * @param brandId Brand of store
  * @returns {Promise<void>} Store ID
  */
-const create = async function (newStore) {
+const create = async function (newStore, brandId) {
     const region = await Regions.getById(newStore.regionId);
 
     // if a region is provided but doesn't exist
@@ -19,13 +20,13 @@ const create = async function (newStore) {
     }
 
     // check if brand exists
-    await BrandsService.checkExistsAndGet(newStore.brandId);
+    await BrandsService.checkExistsAndGet(brandId);
 
     // check the store doesn't already exist
-    await checkStoreDoesntExistByInternalId(newStore.internalId, newStore.brandId);
+    await checkStoreDoesntExistByInternalId(newStore.internalId, brandId);
 
     // create the store
-    const storeId = await Stores.insert(newStore);
+    const storeId = await Stores.insert({brandId, ...newStore});
 
     // create the stores location
     await LocationsService.create(newStore.location, storeId);
@@ -41,7 +42,7 @@ const create = async function (newStore) {
  * @returns {Promise<void>} None
  */
 const checkStoreDoesntExistByInternalId = async function (internalId, brandId) {
-    if (!(await getStoreByInternalId(internalId, brandId))) {
+    if (await getStoreByInternalId(internalId, brandId)) {
         throw new NoneUniqueInternalStoreIdException(
             `Store with internalId '${internalId}' and brandId ${brandId} already exists`)
     }

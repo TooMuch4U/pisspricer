@@ -465,10 +465,11 @@ exports.setItemAndPrice = async function(req, res) {
         delete newItem.image;
 
         // create or get the store
-        let storeId = (await StoresService.getStoreByInternalId(newStore.internalId, brandId)).storeId;
+        let store = await StoresService.getStoreByInternalId(newStore.internalId, brandId);
+        let storeId = store ? store.storeId : null
         let storeCreated = false;
         if (!storeId) {
-            storeId = await StoresService.create(newStore);
+            storeId = await StoresService.create(newStore, brandId);
             storeCreated = true;
         }
 
