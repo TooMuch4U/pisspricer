@@ -2350,7 +2350,7 @@
             "bearerAuth": []
           }
         ],
-        "description": "Takes an entire store, item and itemprice in the request body. The internalId of the store and item will be used to check if these already exist. The store/item won't be updated if it already exists. If the item doesn't have an image and an image is provided, this will be set. The item price will be updated regardless if it already exists.",
+        "description": "Takes an entire store, item and itemprice in the request body. The internalId of the store and item will be used to check if these already exist. The store/item won't be updated if it already exists. If the item doesn't already have an image and an image is provided, this will be set. The image should be a base64 encoding of the binary data. The item price will be updated regardless if it already exists.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2857,7 +2857,8 @@
                 "example": "Beer"
               },
               "image": {
-                "type": "string"
+                "type": "string",
+                "format": "byte"
               }
             }
           },

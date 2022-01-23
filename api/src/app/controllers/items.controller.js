@@ -461,7 +461,7 @@ exports.setItemAndPrice = async function(req, res) {
         const newStore = body.store;
         const newItemPrice = body.itemPrice;
         const newItem = body.item;
-        const newItemImage = newItem.image;
+        const newItemImage = newItem.image ? Buffer.from(newItem.image, 'base64') : null;
         delete newItem.image;
 
         // create or get the store
@@ -484,7 +484,7 @@ exports.setItemAndPrice = async function(req, res) {
         let sku = item.sku;
 
         let imageCreated = false;
-        if (item.hasImage && newItemImage) {
+        if (!item.hasImage && newItemImage) {
             imageCreated = true;
             await ItemsService.setImage(item.sku, newItemImage);
         }

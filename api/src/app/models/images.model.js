@@ -22,8 +22,8 @@ exports.uploadImage = (file, folderPath) => new Promise((resolve, reject) => {
         const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
         resolve(publicUrl)
     })
-        .on('error', () => {
-            reject(`Unable to upload image, something went wrong`)
+        .on('error', (err) => {
+            reject(`Unable to upload image, something went wrong ${err}`)
         })
         .end(buffer)
 });
