@@ -2857,8 +2857,7 @@
                 "example": "Beer"
               },
               "image": {
-                "type": "string",
-                "format": "byte"
+                "type": "string"
               }
             }
           },

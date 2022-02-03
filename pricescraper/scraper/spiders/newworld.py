@@ -10,10 +10,17 @@ NW_BEER_AND_WINE_PAGE_URL = 'https://www.newworld.co.nz/shop/category/beer-cider
 
 class NewWorldSpider(scrapy.Spider):
     name = 'newworld'
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'scraper.pipelines.newworld_transform.NewWorldItemTransformPipeline': 100,
+            'scraper.pipelines.location.LocationPipeline': 200,
+            'scraper.pipelines.sendtoapi.SavePipeline': 800
+        }
+    }
     allowed_domains = ['newworld.co.nz']
     start_urls = ['https://www.newworld.co.nz/']
     api_url = "https://www.newworld.co.nz/CommonApi"
-    # dictionary to map UserItem fields to Jmes query paths
+    # dictionary to map Item fields to jmes json query paths
     item_price_jmes_paths = {
         'basePrice': 'ProductDetails.MultiBuyBasePrice',
         'price': 'ProductDetails.PricePerItem',
@@ -28,6 +35,11 @@ class NewWorldSpider(scrapy.Spider):
         'address': 'address',
         'openingHours': 'openingHours'
     }
+
+    def __init__(self, *args, **kwargs):
+        super(NewWorldSpider, self).__init__(*args, **kwargs)
+        self.brand_id = 5  # TODO: Set this from api endpoint
+
 
     def parse(self, response, **kwargs):
         # get the ID of all New World stores from API
