@@ -7,6 +7,7 @@ from scrapy.loader import ItemLoader
 from itemloaders.processors import TakeFirst, SelectJmes
 
 from ..services.images import process_response_content
+from ..services.pisspricer import PisspricerAdmin
 
 NW_BEER_AND_WINE_PAGE_URL = 'https://www.newworld.co.nz/shop/category/beer-cider-and-wine?ps=50'
 
@@ -42,7 +43,7 @@ class NewWorldSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(NewWorldSpider, self).__init__(*args, **kwargs)
-        self.brand_id = 5  # TODO: Set this from api endpoint
+        self.brand_id = PisspricerAdmin().get_brand_id("New World")
 
     def parse(self, response, **kwargs):
         # get the ID of all New World stores from API

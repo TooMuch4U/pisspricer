@@ -19,3 +19,12 @@ class PisspricerAdmin(metaclass=Singleton):
         res_json = res.json()
         token = res_json["authToken"]
         self.auth_headers = {"X-Authorization": token}
+
+    def get_brand_id(self, name):
+        url = urljoin(Environment()[Environment.BASE_URL_KEY], 'brands')
+        res = requests.get(url, headers=self.auth_headers)
+        for brand in res.json():
+            if brand['name'] == name:
+                return brand['brandId']
+        raise Exception(f"Brand with name '{name}' doesn't exist")
+
