@@ -29,10 +29,9 @@ jobs:
         working-directory: api
         run: |
           mkdir keys
-          cd keys
-          touch gcloud.json
-          echo ${{ secrets.API_GCLOUD_KEY_CONTENTS }} >> gcloud.json
-          cat gcloud.json
+          touch keys/gcloud.json
+          echo ${{ secrets.API_GCLOUD_KEY_CONTENTS }} >> keys/gcloud.json
+          cat keys/gcloud.json
 
       - name: Publish
         uses: nogsantos/scp-deploy@master
