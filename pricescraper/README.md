@@ -13,8 +13,7 @@ pisspricer.url=http://localhost:4941/api/v1/
 ```
 
 # Running
-Crawl using scraper `newworld` and output to items.json
+Crawl using scraper `newworld`
 ```bash
-cd pricescraper
-scrapy crawl newworld -o items.json
+scrapy crawl newworld
 ```
