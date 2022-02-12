@@ -18,7 +18,7 @@ class ItemAtPrice(scrapy.Item):
     url = scrapy.Field()
     productName = scrapy.Field()
     store = scrapy.Field()
-    imageUrl = scrapy.Field()
+    image = scrapy.Field()
 
 
 class Store(scrapy.Item):

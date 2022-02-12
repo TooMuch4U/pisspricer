@@ -1,4 +1,5 @@
 from ..items.pisspricer import FullItem, Item, Location, Store, ItemPrice
+from ..services.images import image_base64_from_url
 
 
 class NewWorldItemTransformPipeline:
@@ -14,8 +15,8 @@ class NewWorldItemTransformPipeline:
     def create_item(item):
         new_item = Item()
         new_item['name'] = item['productName']
-        # new_item.image = ""
-        # TODO: Download and transform image
+        if item.get('image'):
+            new_item['image'] = item.get('image')
         return new_item
 
     @staticmethod
@@ -27,6 +28,8 @@ class NewWorldItemTransformPipeline:
         else:
             item_price['salePrice'] = item['price']
             item_price['price'] = item['basePrice']
+            if item_price['salePrice'] == item_price['price']:
+                del item_price['salePrice']
         item_price['internalSku'] = item['productId']
         return item_price
 

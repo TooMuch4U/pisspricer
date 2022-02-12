@@ -1,9 +1,12 @@
+import base64
 import scrapy
 import json
 import requests
 from ..items.newworld import ItemAtPrice, Store
 from scrapy.loader import ItemLoader
 from itemloaders.processors import TakeFirst, SelectJmes
+
+from ..services.images import process_response_content
 
 NW_BEER_AND_WINE_PAGE_URL = 'https://www.newworld.co.nz/shop/category/beer-cider-and-wine?ps=50'
 
@@ -17,9 +20,10 @@ class NewWorldSpider(scrapy.Spider):
             'scraper.pipelines.sendtoapi.SavePipeline': 800
         }
     }
-    allowed_domains = ['newworld.co.nz']
+    allowed_domains = ['newworld.co.nz', 'fsimg.co.nz']
     start_urls = ['https://www.newworld.co.nz/']
     api_url = "https://www.newworld.co.nz/CommonApi"
+
     # dictionary to map Item fields to jmes json query paths
     item_price_jmes_paths = {
         'basePrice': 'ProductDetails.MultiBuyBasePrice',
@@ -39,7 +43,6 @@ class NewWorldSpider(scrapy.Spider):
     def __init__(self, *args, **kwargs):
         super(NewWorldSpider, self).__init__(*args, **kwargs)
         self.brand_id = 5  # TODO: Set this from api endpoint
-
 
     def parse(self, response, **kwargs):
         # get the ID of all New World stores from API
@@ -61,10 +64,13 @@ class NewWorldSpider(scrapy.Spider):
                 yield response.follow(
                     NW_BEER_AND_WINE_PAGE_URL,
                     callback=self.parse_beer_wine_page,
-                    cookies={"STORE_ID_V2": store['id'],
-                             "eCom_STORE_ID": store['id']},
+                    cookies=self.get_store_cookies(store),
                     meta={'store': loader.load_item()},
                     dont_filter=True)
+
+    @staticmethod
+    def get_store_cookies(store):
+        return {"STORE_ID_V2": store['id'], "eCom_STORE_ID": store['id']}
 
     def parse_beer_wine_page(self, response):
         products = response.css(
@@ -88,11 +94,39 @@ class NewWorldSpider(scrapy.Spider):
             loader.add_css('url', 'a.fs-product-card__details.u-color-black.u-no-text-decoration.u-cursor::attr(href)')
             loader.add_value('store', response.meta.get('store'))
 
-            loaded_item = loader.load_item()
-            yield loaded_item
+            image_url = product.css('div.fs-product-card__product-image').attrib['data-src-s']
 
-        next_page = response.css('a.fs-pagination__btn--next').attrib['href']
+            self.logger.debug(f"Found item {item_json}")
+            self.logger.debug(f"Item image url {image_url}")
+
+            yield response.follow(
+                image_url,
+                callback=self.load_image,
+                meta={'item_loader': loader},
+                dont_filter=True)
+
+        store = response.meta.get('store')
+        next_page = response.css('a.fs-pagination__btn--next').attrib.get('href')
         if next_page is not None:
-            yield response.follow(next_page, callback=self.parse_beer_wine_page)
+            yield response.follow(
+                next_page,
+                callback=self.parse_beer_wine_page,
+                dont_filter=True,
+                meta={'store': store},
+                cookies=self.get_store_cookies(store))
+
+    def load_image(self, response):
+        loader = response.meta.get('item_loader')
+
+        # process image and encode as base64 string
+        image_file = process_response_content(response.body)
+        image = base64.b64encode(image_file)
+
+        # add image to loader and load item
+        loader.add_value('image', image)
+        loaded_item = loader.load_item()
+
+        self.logger.debug(f"Item scraped: {loaded_item}")
+        yield loaded_item
 
 

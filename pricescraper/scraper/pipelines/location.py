@@ -1,10 +1,13 @@
+import logging
+
 import requests
 
 
 class LocationPipeline:
 
-    API_ADDRESS_TEMPLATE = "https://photon.komoot.io/api?q={}"
+    API_ADDRESS_TEMPLATE = "https://photon.komoot.io/api?q={}, New Zealand"
     API_GEO_TEMPLATE = "https://photon.komoot.io/reverse?lon={0}&lat={1}"
+    logger = logging.getLogger(__name__)
 
     def process_item(self, item, _):
         location = item['store']['location']
@@ -50,6 +53,8 @@ class LocationPipeline:
 
     @staticmethod
     def fill_in_missing_fields(location, new_location):
+        LocationPipeline.logger.debug(f"Location api returned {new_location}")
+
         new_location_json = new_location.get('features')[0]
         location_properties = new_location_json.get('properties')
 
