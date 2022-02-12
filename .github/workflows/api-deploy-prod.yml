@@ -1,0 +1,54 @@
+name: API Deploy
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - api/**
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@master
+      - name: Installing project dependencies
+        run: npm install
+        working-directory: api/src
+
+      - name: Create env file
+        working-directory: api
+        run: |
+          touch .env
+          echo IMAGE_BUCKET=${{ secrets.API_IMAGE_BUCKET }} >> .env
+          echo BUCKET_KEY_PATH=/keys/gcloud.json >> .env
+          cat .env
+
+      - name: Create google cloud key file
+        working-directory: api
+        run: |
+          touch keys/gcloud.json
+          echo ${{ secrets.API_GCLOUD_KEY_CONTENTS }} >> keys/gcloud.json
+          cat keys/gcloud.json
+
+      - name: Publish
+        uses: nogsantos/scp-deploy@master
+        with:
+          src: ./api/*
+          host: ${{ secrets.VM_SSH_HOST }}
+          remote: /containers/api
+          port: ${{ secrets.VM_SSH_PORT }}
+          user: ${{ secrets.VM_SSH_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+
+      - name: docker-compose up
+        uses: fifsky/ssh-action@master
+        with:
+          command: |
+            cd /containers/api
+            docker-compose up
+          host: ${{ secrets.VM_SSH_HOST }}
+          user: ${{ secrets.VM_SSH_USER }}
+          key: ${{ secrets.VM_SSH_KEY}}
+          port: ${{ secrets.VM_SSH_PORT }}
