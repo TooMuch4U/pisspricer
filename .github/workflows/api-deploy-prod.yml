@@ -31,7 +31,6 @@ jobs:
           mkdir keys
           touch keys/gcloud.json
           echo ${{ secrets.API_GCLOUD_KEY_CONTENTS }} >> keys/gcloud.json
-
       - name: Publish
         uses: nogsantos/scp-deploy@master
         with:
