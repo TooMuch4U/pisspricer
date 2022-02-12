@@ -28,9 +28,8 @@ jobs:
       - name: Create google cloud key file
         working-directory: api
         run: |
-          mkdir keys
-          touch keys/gcloud.json
-          echo ${{ secrets.API_GCLOUD_KEY_CONTENTS }} >> keys/gcloud.json
+          touch gcloud.json
+          echo ${{ secrets.API_GCLOUD_KEY_CONTENTS }} >> gcloud.json
       - name: Publish
         uses: nogsantos/scp-deploy@master
         with:
