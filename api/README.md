@@ -54,7 +54,7 @@ A testing environment can be set up as described in the corresponding README fil
 `/testing-env`.
 
 # Docker Usage 
-## Populate container with previous data
+### Populate container with previous data
 
 Export data: `mysqldump -u root -p --databases pisspricer --routines > dump.sql`
 
@@ -70,7 +70,7 @@ Populate the data (takes 20 seconds): `mysql -p < populate-data/dump.sql`
 
 
 
-## Environment
+### Environment
 
 A `.env` needs to be created in the Docker directory.
 

@@ -39,7 +39,7 @@ jobs:
           user: ${{ secrets.VM_SSH_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
 
-      - name: Publish environment variables
+      - name: Publish environment variables and docker files
         uses: nogsantos/scp-deploy@master
         with:
           src: ./api/.env ./api/docker-compose.yml ./api/Dockerfile
@@ -64,6 +64,7 @@ jobs:
         with:
           command: |
             cd /containers/api
+            docker-compose build
             docker-compose up -d
           host: ${{ secrets.VM_SSH_HOST }}
           user: ${{ secrets.VM_SSH_USER }}
