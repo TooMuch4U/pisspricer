@@ -13,9 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - uses: actions/setup-node@master
-      - name: Installing project dependencies
-        run: npm install
-        working-directory: api/src
 
       - name: Create env file
         working-directory: api
