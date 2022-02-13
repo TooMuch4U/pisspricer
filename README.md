@@ -8,7 +8,10 @@ and the staging branch can be found at [dev.pisspricer.co.nz](https://dev.pisspr
 See more in [frontend](frontend)
 
 # REST Api
-Setup and running info is in [api readme](api/README.md)
+A Node.js Express web api used for Pisspricer. 
+The api is currently deployed at [api.pisspricer.co.nz](https://api.pisspricer.co.nz). 
+See more in [api](api)
 
 # Web Scraper
-Setup and running info is in [scraper readme](pricescraper/README.md)
+A Python CLI application used to scrape, process and upload liquor prices for pisspricer.
+See more in [scraper](pricescraper)
