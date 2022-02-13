@@ -32,12 +32,32 @@ jobs:
           touch keys/gcloud.json
           echo ${{ secrets.API_GCLOUD_KEY_CONTENTS }} >> keys/gcloud.json
 
-      - name: Publish
+      - name: Publish source code
         uses: nogsantos/scp-deploy@master
         with:
-          src: ./api/*
+          src: ./api/src/*
+          host: ${{ secrets.VM_SSH_HOST }}
+          remote: /containers/api/src
+          port: ${{ secrets.VM_SSH_PORT }}
+          user: ${{ secrets.VM_SSH_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+
+      - name: Publish environment variables
+        uses: nogsantos/scp-deploy@master
+        with:
+          src: ./api/.env
           host: ${{ secrets.VM_SSH_HOST }}
           remote: /containers/api
+          port: ${{ secrets.VM_SSH_PORT }}
+          user: ${{ secrets.VM_SSH_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+
+      - name: Publish gcloud key
+        uses: nogsantos/scp-deploy@master
+        with:
+          src: ./api/keys/*
+          host: ${{ secrets.VM_SSH_HOST }}
+          remote: /containers/api/keys
           port: ${{ secrets.VM_SSH_PORT }}
           user: ${{ secrets.VM_SSH_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
