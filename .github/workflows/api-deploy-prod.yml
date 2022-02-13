@@ -64,7 +64,7 @@ jobs:
         with:
           command: |
             cd /containers/api
-            docker-compose up
+            docker-compose up -d
           host: ${{ secrets.VM_SSH_HOST }}
           user: ${{ secrets.VM_SSH_USER }}
           key: ${{ secrets.VM_SSH_KEY}}
