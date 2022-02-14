@@ -31,7 +31,7 @@ jobs:
         working-directory: frontend
         run: npm run build
       - name: Remove old site
-        run: rm -r /var/www/main
+        run: rm -r /var/www/main/*
       - name: Copy new site
         working-directory: frontend
         run: cp -r ./dist/* /var/www/main
