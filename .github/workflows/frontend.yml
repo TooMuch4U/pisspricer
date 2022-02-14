@@ -23,7 +23,7 @@ jobs:
           name: frontend-dist
           path: frontend/dist
 
-  deploy:
+  deploy-prod:
     if: github.ref == 'refs/heads/master'
     needs: [ build ]
     runs-on: self-hosted
@@ -37,3 +37,18 @@ jobs:
       - name: Copy new site
         working-directory: frontend
         run: cp -r ./dist/* /var/www/main
+
+  deploy-staging:
+    if: github.ref == 'refs/heads/staging'
+    needs: [ build ]
+    runs-on: self-hosted
+    steps:
+      - name: Download built frontend
+        uses: actions/download-artifact@v2
+        with:
+          name: frontend-dist
+      - name: Remove old site
+        run: rm -r /var/www/dev/*
+      - name: Copy new site
+        working-directory: frontend
+        run: cp -r ./dist/* /var/www/dev
