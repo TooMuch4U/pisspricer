@@ -20,7 +20,8 @@ jobs:
         working-directory: frontend
         run: npm run build
   deploy:
-    if: success()
+    if: ${{ always() && contains(join(needs.*.result, ','), 'success') }}
+    needs: [ build-check ]
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@master
