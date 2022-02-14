@@ -36,6 +36,7 @@ jobs:
           cp .env /containers/api/
           cp docker-compose.yml /containers/api/
           cp Dockerfile /containers/api/
+          cp .dockerignore /containers/api/
           cp -r keys/* /containers/api/keys
 
       - name: docker-compose up

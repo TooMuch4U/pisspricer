@@ -5,3 +5,6 @@
 /api/src/*.pem
 /api/src/config/*.json
 /frontend/dist/
+/api/data/
+/api/populate-data/
+/api/keys/
