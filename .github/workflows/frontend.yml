@@ -36,7 +36,7 @@ jobs:
         run: rm -r /var/www/main/*
       - name: Copy new site
         working-directory: frontend
-        run: cp -r ./dist/* /var/www/main
+        run: cp -r * /var/www/main
 
   deploy-staging:
     if: github.ref == 'refs/heads/staging'
@@ -49,6 +49,8 @@ jobs:
           name: frontend-dist
       - name: Remove old site
         run: rm -r /var/www/dev/*
+      - name: Remove old site
+        run: ls
       - name: Copy new site
         working-directory: frontend
-        run: cp -r ./dist/* /var/www/dev
+        run: cp -r * /var/www/dev
