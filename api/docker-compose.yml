@@ -9,6 +9,10 @@ services:
     volumes:
       - ./data:/var/lib/mysql
       - ./populate-data:/populate-data
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
   nodejs:
     depends_on:
       - db
