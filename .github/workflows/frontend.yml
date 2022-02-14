@@ -28,6 +28,12 @@ jobs:
     needs: [ build ]
     runs-on: self-hosted
     steps:
+      - name: Clean working directory
+        shell: bash
+        run: |
+          cd $RUNNER_WORKSPACE
+          cd ..
+          rm -r *
       - name: Download built frontend
         uses: actions/download-artifact@v2
         with:
@@ -43,13 +49,19 @@ jobs:
     needs: [ build ]
     runs-on: self-hosted
     steps:
+      - name: Clean working directory
+        shell: bash
+        run: |
+          cd $RUNNER_WORKSPACE
+          cd ..
+          rm -r *
       - name: Download built frontend
         uses: actions/download-artifact@v2
         with:
           name: frontend-dist
       - name: Remove old site
         run: rm -r /var/www/dev/*
-      - name: Remove old site
+      - name: ls
         run: ls
       - name: Copy new site
         working-directory: frontend

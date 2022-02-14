@@ -11,6 +11,12 @@ jobs:
   deploy:
     runs-on: self-hosted
     steps:
+      - name: Clean working directory
+        shell: bash
+        run: |
+          cd $RUNNER_WORKSPACE
+          cd ..
+          rm -r *
       - uses: actions/checkout@master
       - uses: actions/setup-node@master
 
