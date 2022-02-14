@@ -75,3 +75,4 @@ Populate the data (takes 20 seconds): `mysql -p < populate-data/dump.sql`
 A `.env` needs to be created in the Docker directory.
 
 A gcloud json key needs to be provided in the ./keys and specified in the .env file.
+

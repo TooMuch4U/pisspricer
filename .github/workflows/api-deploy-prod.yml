@@ -32,7 +32,7 @@ jobs:
       - name: Copy files
         working-directory: api
         run: |
-          cp -r src /containers/api/src
+          cp -r src /containers/api/
           cp .env /containers/api/
           cp docker-compose.yml /containers/api/
           cp Dockerfile /containers/api/
