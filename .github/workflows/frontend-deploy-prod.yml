@@ -14,8 +14,10 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions/setup-node@master
       - name: Installing project dependencies
+        working-directory: frontend
         run: npm install
       - name: Building the project
+        working-directory: frontend
         run: npm run build
   deploy:
     if: success()
@@ -24,10 +26,13 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions/setup-node@master
       - name: Installing project dependencies
+        working-directory: frontend
         run: npm install
       - name: Building the project
+        working-directory: frontend
         run: npm run build
       - name: Remove old site
         run: rm -r /var/www/main
       - name: Copy new site
+        working-directory: frontend
         run: cp -r ./dist/* /var/www/main
