@@ -1,9 +1,7 @@
-name: Frontend Deploy Prod
+name: Frontend
 
 on:
   push:
-    branches:
-      - master
     paths:
       - frontend/**
 
@@ -20,7 +18,7 @@ jobs:
         working-directory: frontend
         run: npm run build
   deploy:
-    if: ${{ always() && contains(join(needs.*.result, ','), 'success') }}
+    if: github.ref == 'refs/heads/master'
     needs: [ build-check ]
     runs-on: self-hosted
     steps:
