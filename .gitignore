@@ -8,3 +8,4 @@
 /api/data/
 /api/populate-data/
 /api/keys/
+*.env
