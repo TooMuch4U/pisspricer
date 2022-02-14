@@ -49,12 +49,6 @@ jobs:
     needs: [ build ]
     runs-on: self-hosted
     steps:
-      - name: Clean working directory
-        shell: bash
-        run: |
-          cd $RUNNER_WORKSPACE
-          cd ..
-          rm -r *
       - name: Download built frontend
         uses: actions/download-artifact@v2
         with:
@@ -66,3 +60,9 @@ jobs:
       - name: Copy new site
         working-directory: frontend
         run: cp -r * /var/www/dev
+      - name: Clean working directory
+        shell: bash
+        run: |
+          cd $RUNNER_WORKSPACE
+          cd ..
+          rm -r *
