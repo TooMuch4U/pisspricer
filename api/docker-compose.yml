@@ -34,3 +34,7 @@ services:
       - EMAIL_USER
       - EMAIL_PASSWORD
       - EMAIL_ADDRESS
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:4941/api/v1/brands" ]
+      timeout: 10s
+      retries: 3
