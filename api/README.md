@@ -1,8 +1,6 @@
 # Pisspricer Web API
-![Deploy to Production](https://github.com/TooMuch4U/pisspricer-api/workflows/Deploy%20to%20production/badge.svg)
-
 A Node.js Express web api used for Pisspricer. 
-The api is currently deployed at [api.pisspricer.co.nz](https://api.pisspricer.co.nz).
+The api is currently deployed at [pisspricer.co.nz/api/v1](https://pisspricer.co.nz/api/v1).
 
 # Requirements
 - Node.js
