@@ -56,8 +56,5 @@ jobs:
           name: frontend-dist
       - name: Remove old site
         run: rm -r /var/www/dev/*
-      - name: ls
-        run: ls
       - name: Copy new site
-        working-directory: frontend
         run: cp -r * /var/www/dev
