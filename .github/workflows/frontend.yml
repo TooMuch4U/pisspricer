@@ -28,6 +28,7 @@ jobs:
     needs: [ build ]
     runs-on: self-hosted
     steps:
+      - uses: TooMuch4U/runner-post-cleanup@v1
       - name: Download built frontend
         uses: actions/download-artifact@v2
         with:
@@ -35,14 +36,14 @@ jobs:
       - name: Remove old site
         run: rm -r /var/www/main/*
       - name: Copy new site
-        working-directory: frontend
-        run: cp -r ./dist/* /var/www/main
+        run: cp -r * /var/www/main
 
   deploy-staging:
     if: github.ref == 'refs/heads/staging'
     needs: [ build ]
     runs-on: self-hosted
     steps:
+      - uses: TooMuch4U/runner-post-cleanup@v1
       - name: Download built frontend
         uses: actions/download-artifact@v2
         with:
@@ -50,5 +51,4 @@ jobs:
       - name: Remove old site
         run: rm -r /var/www/dev/*
       - name: Copy new site
-        working-directory: frontend
-        run: cp -r ./dist/* /var/www/dev
+        run: cp -r * /var/www/dev
