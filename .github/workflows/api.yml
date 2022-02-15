@@ -11,7 +11,7 @@ jobs:
   deploy:
     runs-on: self-hosted
     steps:
-      - uses: TooMuch4U/runner-post-cleanup@v1
+      - uses: TooMuch4U/actions-clean@v2.1
       - uses: actions/checkout@master
       - uses: actions/setup-node@master
 

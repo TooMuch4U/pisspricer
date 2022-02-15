@@ -28,7 +28,7 @@ jobs:
     needs: [ build ]
     runs-on: self-hosted
     steps:
-      - uses: TooMuch4U/runner-post-cleanup@v1
+      - uses: TooMuch4U/actions-clean@v2.1
       - name: Download built frontend
         uses: actions/download-artifact@v2
         with:
@@ -43,7 +43,7 @@ jobs:
     needs: [ build ]
     runs-on: self-hosted
     steps:
-      - uses: TooMuch4U/runner-post-cleanup@v1
+      - uses: TooMuch4U/actions-clean@v2.1
       - name: Download built frontend
         uses: actions/download-artifact@v2
         with:
