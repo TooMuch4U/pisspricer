@@ -97,9 +97,6 @@ class NewWorldSpider(scrapy.Spider):
 
             image_url = product.css('div.fs-product-card__product-image').attrib['data-src-s']
 
-            self.logger.debug(f"Found item {item_json}")
-            self.logger.debug(f"Item image url {image_url}")
-
             yield response.follow(
                 image_url,
                 callback=self.load_image,
@@ -127,7 +124,7 @@ class NewWorldSpider(scrapy.Spider):
         loader.add_value('image', image)
         loaded_item = loader.load_item()
 
-        self.logger.debug(f"Item scraped: {loaded_item}")
+        self.logger.debug(f"Item found: {loaded_item.get('productName')}")
         yield loaded_item
 
 
