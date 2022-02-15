@@ -49,6 +49,7 @@ jobs:
     needs: [ build ]
     runs-on: self-hosted
     steps:
+      - uses: TooMuch4U/runner-post-cleanup@master
       - name: Download built frontend
         uses: actions/download-artifact@v2
         with:
