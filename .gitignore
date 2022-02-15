@@ -9,3 +9,4 @@
 /api/populate-data/
 /api/keys/
 *.env
+/pricescraper/summary/

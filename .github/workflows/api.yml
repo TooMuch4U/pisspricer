@@ -1,4 +1,4 @@
-name: API Deploy
+name: API
 
 on:
   push:
@@ -11,6 +11,7 @@ jobs:
   deploy:
     runs-on: self-hosted
     steps:
+      - uses: TooMuch4U/runner-post-cleanup@v1
       - uses: actions/checkout@master
       - uses: actions/setup-node@master
 
