@@ -1,4 +1,4 @@
-name: API Deploy
+name: API
 
 on:
   push:
@@ -11,12 +11,7 @@ jobs:
   deploy:
     runs-on: self-hosted
     steps:
-      - name: Clean working directory
-        shell: bash
-        run: |
-          cd $RUNNER_WORKSPACE
-          cd ..
-          rm -r *
+      - uses: TooMuch4U/runner-post-cleanup@v1
       - uses: actions/checkout@master
       - uses: actions/setup-node@master
 

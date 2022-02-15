@@ -28,12 +28,7 @@ jobs:
     needs: [ build ]
     runs-on: self-hosted
     steps:
-      - name: Clean working directory
-        shell: bash
-        run: |
-          cd $RUNNER_WORKSPACE
-          cd ..
-          rm -r *
+      - uses: TooMuch4U/runner-post-cleanup@v1
       - name: Download built frontend
         uses: actions/download-artifact@v2
         with:
@@ -49,7 +44,7 @@ jobs:
     needs: [ build ]
     runs-on: self-hosted
     steps:
-      - uses: TooMuch4U/runner-post-cleanup@master
+      - uses: TooMuch4U/runner-post-cleanup@v1
       - name: Download built frontend
         uses: actions/download-artifact@v2
         with:
