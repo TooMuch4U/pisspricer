@@ -61,9 +61,3 @@ jobs:
       - name: Copy new site
         working-directory: frontend
         run: cp -r * /var/www/dev
-      - name: Clean working directory
-        shell: bash
-        run: |
-          cd $RUNNER_WORKSPACE
-          cd ..
-          rm -r *
