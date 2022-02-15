@@ -36,7 +36,6 @@ jobs:
       - name: Remove old site
         run: rm -r /var/www/main/*
       - name: Copy new site
-        working-directory: frontend
         run: cp -r * /var/www/main
 
   deploy-staging:

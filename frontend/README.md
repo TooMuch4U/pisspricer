@@ -18,4 +18,3 @@ And a production build can be generated with
 ``` bash
 npm run build
 ```
-
