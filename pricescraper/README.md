@@ -28,6 +28,12 @@ cd api
 npm i
 ```
 
+### Environment Variables
+```bash
+HTTP_BASIC_USER=myusername
+HTTP_BASIC_PASS=password123
+```
+
 ### Run
 ```bash
 npm run start
