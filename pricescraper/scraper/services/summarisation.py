@@ -1,8 +1,9 @@
 import datetime
 import json
+import os
 
 from .singleton import Singleton
-import os
+from .environment import Environment
 
 
 class Summarisation(metaclass=Singleton):
@@ -10,8 +11,14 @@ class Summarisation(metaclass=Singleton):
     REL_PATH = "../../summary"
     FAIL_FILENAME = "fails.json"
     SUCCESS_FILENAME = "success.json"
+    INFO_FILENAME = "info.json"
 
     def __init__(self):
+        # check if summary path env variable set
+        env_path = Environment().get(Environment.SUMMARY_PATH_KEY)
+        if env_path:
+            self.REL_PATH = env_path
+
         base = os.path.dirname(os.path.realpath(__file__))
         self.path = os.path.join(base, self.REL_PATH)
         self.path = os.path.join(self.path, str(datetime.datetime.now()))
@@ -25,6 +32,9 @@ class Summarisation(metaclass=Singleton):
 
     def get_success_path(self, brand_id):
         return os.path.join(self.get_brand_path(brand_id), self.SUCCESS_FILENAME)
+
+    def get_info_path(self, brand_id):
+        return os.path.join(self.get_brand_path(brand_id), self.INFO_FILENAME)
 
     def create_brand_dir(self, brand_id):
         os.makedirs(self.get_brand_path(brand_id), exist_ok=True)
@@ -51,4 +61,21 @@ class Summarisation(metaclass=Singleton):
                 file.write(",\n")
             file.write(item)
 
+    def log_start(self, brand_id):
+        self.create_brand_dir(brand_id)
+        info_path = self.get_info_path(brand_id)
+        item = {
+            "startTime": str(datetime.datetime.now()),
+            "endTime": None
+        }
+        with open(info_path, 'w') as file:
+            json.dump(item, file)
 
+    def log_end(self, brand_id):
+        self.create_brand_dir(brand_id)
+        info_path = self.get_info_path(brand_id)
+        with open(info_path, 'r') as file:
+            item = json.load(file)
+            item['endTime'] = str(datetime.datetime.now())
+        with open(info_path, 'w') as file:
+            json.dump(item, file)

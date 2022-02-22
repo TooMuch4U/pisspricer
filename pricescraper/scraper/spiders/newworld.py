@@ -5,9 +5,12 @@ import requests
 from ..items.newworld import ItemAtPrice, Store
 from scrapy.loader import ItemLoader
 from itemloaders.processors import TakeFirst, SelectJmes
+from pydispatch import dispatcher
+from scrapy import signals
 
 from ..services.images import process_response_content
 from ..services.pisspricer import PisspricerAdmin
+from ..services.summarisation import Summarisation
 
 NW_BEER_AND_WINE_PAGE_URL = 'https://www.newworld.co.nz/shop/category/beer-cider-and-wine?ps=50'
 
@@ -44,6 +47,8 @@ class NewWorldSpider(scrapy.Spider):
     def __init__(self, *args, **kwargs):
         super(NewWorldSpider, self).__init__(*args, **kwargs)
         self.brand_id = PisspricerAdmin().get_brand_id("New World")
+        Summarisation().log_start(self.brand_id)
+        dispatcher.connect(self.on_close, signals.spider_closed)
 
     def parse(self, response, **kwargs):
         # get the ID of all New World stores from API
@@ -97,9 +102,6 @@ class NewWorldSpider(scrapy.Spider):
 
             image_url = product.css('div.fs-product-card__product-image').attrib['data-src-s']
 
-            self.logger.debug(f"Found item {item_json}")
-            self.logger.debug(f"Item image url {image_url}")
-
             yield response.follow(
                 image_url,
                 callback=self.load_image,
@@ -127,7 +129,8 @@ class NewWorldSpider(scrapy.Spider):
         loader.add_value('image', image)
         loaded_item = loader.load_item()
 
-        self.logger.debug(f"Item scraped: {loaded_item}")
+        self.logger.debug(f"Item found: {loaded_item.get('productName')}")
         yield loaded_item
 
-
+    def on_close(self):
+        Summarisation().log_end(self.brand_id)

@@ -1,0 +1,29 @@
+version: '3'
+services:
+  scraper:
+    build: ""
+    volumes:
+      - ./logs:/var/logs
+      - ./summary:/summary
+    environment:
+      - pisspricer.name
+      - pisspricer.password
+      - pisspricer.url
+
+  api:
+    build:
+      context: .
+      dockerfile: ApiDockerfile
+
+    volumes:
+      - ./summary:/usr/src/app/summary
+    ports:
+      - 3000:3000
+    environment:
+      - HTTP_BASIC_USER
+      - HTTP_BASIC_PASS
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://api:3000/syncs" ]
+      timeout: 10s
+      retries: 10
+

@@ -12,6 +12,7 @@ import AdminPage from '../components/AdminPage'
 import AdminCombineSkus from '../components/admin-pages/CombineSkus'
 import AdminHome from '../components/admin-pages/Home'
 import Brands from '../components/admin-pages/Brands'
+import Syncs from '../components/admin-pages/sync-page/Syncs'
 
 Vue.use(Router)
 
@@ -73,6 +74,10 @@ export default new Router({
         {
           path: 'brands',
           component: Brands
+        },
+        {
+          path: 'syncs',
+          component: Syncs
         }
       ]
     }
