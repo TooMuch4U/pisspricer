@@ -9,6 +9,7 @@ class Environment(metaclass=Singleton):
     EMAIL_KEY = 'pisspricer.email'
     PASSWORD_KEY = 'pisspricer.password'
     BASE_URL_KEY = 'pisspricer.url'
+    SUMMARY_PATH_KEY = 'pisspricer.summary_path'
     REQUIRED = [EMAIL_KEY, PASSWORD_KEY, BASE_URL_KEY]
 
     def __init__(self):
@@ -23,3 +24,6 @@ class Environment(metaclass=Singleton):
 
     def __getitem__(self, key):
         return self._env_items[key]
+
+    def get(self, key):
+        return self._env_items.get(key)

@@ -1,8 +1,9 @@
 import datetime
 import json
+import os
 
 from .singleton import Singleton
-import os
+from .environment import Environment
 
 
 class Summarisation(metaclass=Singleton):
@@ -13,6 +14,11 @@ class Summarisation(metaclass=Singleton):
     INFO_FILENAME = "info.json"
 
     def __init__(self):
+        # check if summary path env variable set
+        env_path = Environment().get(Environment.SUMMARY_PATH_KEY)
+        if env_path:
+            self.REL_PATH = env_path
+
         base = os.path.dirname(os.path.realpath(__file__))
         self.path = os.path.join(base, self.REL_PATH)
         self.path = os.path.join(self.path, str(datetime.datetime.now()))

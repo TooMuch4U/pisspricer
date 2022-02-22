@@ -1,0 +1,41 @@
+name: Pricescraper
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - pricescraper/**
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: TooMuch4U/actions-clean@v2.1
+      - uses: actions/checkout@master
+
+      - name: Create scraper env file
+        working-directory: pricescraper
+        run: |
+          touch .env
+          echo pisspricer.email=${{ secrets.SCRAPER_EMAIL }} >> .env
+          echo pisspricer.password=${{ secrets.SCRAPER_PASSWORD }} >> .env
+          echo pisspricer.url=https://pisspricer.co.nz/api/v1/ >> .env
+          cat .env
+
+      - name: Create api env file
+        working-directory: pricescraper/api
+        run: |
+          touch .env
+          echo HTTP_BASIC_USER=${{ secrets.SCRAPER_API_USER }} >> .env
+          echo HTTP_BASIC_PASS=${{ secrets.SCRAPER_API_PASSWORD }} >> .env
+          cat .env
+
+      - name: Copy files
+        run: cp -a ./pricescraper/. /containers/pricescraper
+
+      - name: docker-compose up
+        working-directory: /containers/pricescraper
+        run: |
+          docker-compose build
+          docker-compose up -d
