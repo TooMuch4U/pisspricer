@@ -11,6 +11,7 @@ async function bootstrap() {
     "credentials": true
   }
   const app = await NestFactory.create(AppModule, { cors } );
+  app.setGlobalPrefix('scrapi/v1');
   await app.listen(3000);
 }
 bootstrap();
