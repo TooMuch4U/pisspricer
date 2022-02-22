@@ -32,7 +32,7 @@ jobs:
           cat .env
 
       - name: Copy files
-        run: cp -a ./pricescraper/. /containers/pricescraper
+        run: cp -r ./pricescraper/. /containers/pricescraper
 
       - name: docker-compose up
         working-directory: /containers/pricescraper
