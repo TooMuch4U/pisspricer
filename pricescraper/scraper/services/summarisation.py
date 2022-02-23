@@ -24,10 +24,13 @@ class Summarisation(metaclass=Singleton):
         self.path = os.path.join(base, self.REL_PATH)
 
         # add datetime to path
-        timezone = pytz.timezone('Pacific/Auckland')
-        self.path = os.path.join(self.path, str(datetime.datetime.now(tz = timezone)))
+        self.path = os.path.join(self.path, self._get_date_now())
 
         os.makedirs(self.path, exist_ok=True)
+
+    def _get_date_now(self):
+        timezone = pytz.timezone('Pacific/Auckland')
+        return str(datetime.datetime.now(tz=timezone))
 
     def get_brand_path(self, brand_id):
         return os.path.join(self.path, str(brand_id))
@@ -70,7 +73,7 @@ class Summarisation(metaclass=Singleton):
         self.create_brand_dir(brand_id)
         info_path = self.get_info_path(brand_id)
         item = {
-            "startTime": str(datetime.datetime.now()),
+            "startTime": self._get_date_now(),
             "endTime": None
         }
         with open(info_path, 'w') as file:
@@ -81,6 +84,6 @@ class Summarisation(metaclass=Singleton):
         info_path = self.get_info_path(brand_id)
         with open(info_path, 'r') as file:
             item = json.load(file)
-            item['endTime'] = str(datetime.datetime.now())
+            item['endTime'] = self._get_date_now()
         with open(info_path, 'w') as file:
             json.dump(item, file)
