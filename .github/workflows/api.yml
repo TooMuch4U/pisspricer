@@ -24,11 +24,11 @@ jobs:
           cat .env
 
       - name: Create google cloud key file
-        working-directory: api
-        run: |
-          mkdir keys
-          touch keys/gcloud.json
-          echo ${{ secrets.API_GCLOUD_KEY_CONTENTS }} >> keys/gcloud.json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "gcloud.json"
+          json: ${{ secrets.API_GCLOUD_KEY_CONTENTS }}
+          dir: 'keys/'
 
       - name: Copy files
         working-directory: api

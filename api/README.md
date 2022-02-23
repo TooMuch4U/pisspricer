@@ -74,4 +74,3 @@ A `.env` needs to be created in the Docker directory.
 
 A gcloud json key needs to be provided in the ./keys and specified in the .env file.
 
-
