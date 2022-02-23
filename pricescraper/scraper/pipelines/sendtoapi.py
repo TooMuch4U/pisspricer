@@ -15,8 +15,17 @@ class SavePipeline:
         pisspricer = PisspricerAdmin()
         self.api_base_url = Environment()[Environment.BASE_URL_KEY]
         self.session = requests.Session()
-        self.session.headers.update(pisspricer.auth_headers)
+        self._set_auth(pisspricer)
         self.summary = Summarisation()
+
+    def _set_auth(self, pisspricer):
+        self.session.headers.update(pisspricer.auth_headers)
+
+    def _re_auth(self):
+        self.logger.info('Re-authing')
+        pisspricer = PisspricerAdmin()
+        pisspricer.login()
+        self._set_auth(pisspricer)
 
     def _get_exporter(self, **kwargs):
         return PythonItemExporter(binary=False, **kwargs)
@@ -30,6 +39,12 @@ class SavePipeline:
 
         self.logger.debug(f"Putting item: {body}")
         res = self.session.put(url, json=body)
+
+        if res.status_code == 401:
+            # try again
+            self._re_auth()
+            self.logger.debug(f"401 status, trying again: {body}")
+            res = self.session.put(url, json=body)
 
         if res.status_code not in [200, 201]:
             self.logger.error(f"Error from pisspricer api: {res.reason}. \nItem: {item}")

@@ -7,7 +7,10 @@ from .environment import Environment
 class PisspricerAdmin(metaclass=Singleton):
 
     def __init__(self):
+        self.auth_headers = None
+        self.login()
 
+    def login(self):
         env = Environment()
         email = env[env.EMAIL_KEY]
 
