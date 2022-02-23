@@ -23,7 +23,7 @@ services:
       - HTTP_BASIC_USER
       - HTTP_BASIC_PASS
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://api:3000/syncs" ]
+      test: [ "CMD", "curl", "-f", "http://api:3000/api/v1/syncs" ]
       timeout: 10s
       retries: 10
 
