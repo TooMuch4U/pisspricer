@@ -23,7 +23,7 @@ export class SyncsService {
     return result
   }
 
-  async findOne(id: string): Promise<Sync> {
+  async findOne(id: string, failPage: number): Promise<Sync> {
     let sync = (await this.findAll()).find(sync => sync.id === id)
 
     // check the sync exists
@@ -46,11 +46,14 @@ export class SyncsService {
       const successes = await this.getJsonFileIfExists(successPath);
       const info = await this.getJsonFileIfExists(infoPath);
 
+      // paginate fails
+      const failsPaged = fails.slice((failPage - 1) * constants.FAIL_ITEMS_PER_PAGE, failPage * constants.FAIL_ITEMS_PER_PAGE);
+
       return {
         id: brandId,
         failsCount: fails.length,
         successCount: successes.length,
-        fails,
+        fails: failsPaged,
         successes,
         ...(info[0])
       }

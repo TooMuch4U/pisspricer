@@ -2,5 +2,6 @@ import instance from './instance'
 
 export default {
   getAll: () => instance.get('syncs'),
-  getOne: (time) => instance.get(`syncs/${time}`)
+  getOne: (time, failPage = 1) => instance.get(`syncs/${time}`, { params: { failPage } }),
+  FAIL_ITEMS_PER_PAGE: 10
 }

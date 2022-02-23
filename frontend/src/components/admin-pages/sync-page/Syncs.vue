@@ -1,7 +1,11 @@
 <template>
   <div>
+    <error-alert v-if="error">
+      {{ error }}
+    </error-alert>
+
     <!-- Loading div -->
-    <div v-if="loadingSyncs" class="spinner-border text-muted" />
+    <spinner v-if="loadingSyncs" />
 
     <!-- Sync list div -->
     <div v-else class="form-group">
@@ -17,7 +21,7 @@
     </div>
 
     <!-- Selected sync loading -->
-    <div v-if="loadingSync" class="spinner-border text-muted"></div>
+    <spinner v-if="loadingSync"/>
 
     <!-- Selected sync -->
     <div v-else-if="selectedSync">
@@ -28,8 +32,10 @@
 
 <script>
 import syncs from '@/api/scrape-api/syncs'
-import { getDateString } from '../../../utils/date'
+import { getDateString } from '@/utils/date'
 import Sync from '@/components/admin-pages/sync-page/Sync'
+import Spinner from '@/components/utils/Spinner'
+import ErrorAlert from '@/components/utils/ErrorAlert'
 
 export default {
   name: 'Syncs',
@@ -40,11 +46,12 @@ export default {
       loadingSyncs: true,
       selectedSyncId: null,
       selectedSync: null,
-      loadingSync: false
+      loadingSync: false,
+      error: null
     }
   },
 
-  components: {Sync},
+  components: { Sync, Spinner, ErrorAlert },
 
   mounted () {
     this.loadSyncs()
@@ -52,10 +59,15 @@ export default {
 
   watch: {
     async selectedSyncId () {
-      this.selectedSync = null
-      this.loadingSync = true
-      this.selectedSync = (await syncs.getOne(this.selectedSyncId)).data
-      this.loadingSync = false
+      try {
+        this.selectedSync = null
+        this.loadingSync = true
+        this.selectedSync = (await syncs.getOne(this.selectedSyncId)).data
+      } catch (err) {
+        this.error = err
+      } finally {
+        this.loadingSync = false
+      }
     }
   },
 
@@ -73,6 +85,10 @@ export default {
           if (this.syncs.length > 0) {
             this.selectedSyncId = this.syncsAscending[0].id
           }
+          this.loadingSyncs = false
+        })
+        .catch((err) => {
+          this.error = err
           this.loadingSyncs = false
         })
     },

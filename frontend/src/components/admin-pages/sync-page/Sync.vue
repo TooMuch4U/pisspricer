@@ -20,7 +20,7 @@
           </a>
 
           <!-- display loading on info not yet populated -->
-          <div v-else class="spinner-border text-muted small-spinner" />
+          <spinner v-else class="small-spinner" />
         </td>
 
         <!-- status -->
@@ -51,7 +51,12 @@
           :modalHeader="`${brand.name} Fails`"
           modalDismissText="Close"
         >
-          <fails-table :fails="brand.fails" />
+          <fails-table
+            :fails="brand.fails"
+            :brandId="brand.id"
+            :syncDate="syncData.id"
+            :totalCount="brand.failsCount"
+          />
         </basic-modal>
 
       </tr>
@@ -72,6 +77,7 @@ import { getTimeDiffFormatted, getTimeSinceNowFormatted } from '@/utils/date'
 import BrandImage from '@/components/images/BrandImage'
 import BasicModal from '@/components/modal/BasicModal'
 import FailsTable from '@/components/admin-pages/sync-page/FailsTable'
+import Spinner from '@/components/utils/Spinner'
 
 export default {
   name: 'Sync.vue',
@@ -88,7 +94,7 @@ export default {
     }
   },
 
-  components: { BrandImage, BasicModal, FailsTable },
+  components: { BrandImage, BasicModal, FailsTable, Spinner },
 
   mounted () {
     brands.getAll()
