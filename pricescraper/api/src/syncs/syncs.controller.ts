@@ -1,4 +1,4 @@
-import {Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseFilters} from '@nestjs/common';
+import {Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseFilters, Query} from '@nestjs/common';
 import { SyncsService } from './syncs.service';
 import { CreateSyncDto } from './dto/create-sync.dto';
 import { UpdateSyncDto } from './dto/update-sync.dto';
@@ -19,7 +19,12 @@ export class SyncsController {
   @Get(':id')
   @UseGuards(AuthGuard('basic'))
   @UseFilters(BasicAuthExceptionFilter)
-  findOne(@Param('id') id: string) {
-    return this.syncsService.findOne(id);
+  findOne(
+      @Param('id') id: string,
+      @Query('failPage') failPage: number) {
+    if (failPage == null) {
+      failPage = 1
+    }
+    return this.syncsService.findOne(id, failPage);
   }
 }
