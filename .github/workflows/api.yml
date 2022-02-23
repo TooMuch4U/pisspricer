@@ -23,12 +23,16 @@ jobs:
           echo BUCKET_KEY_PATH=/keys/gcloud.json >> .env
           cat .env
 
+      - name: Create keys dir
+        working-directory: api
+        run: mkdir keys
+
       - name: Create google cloud key file
         uses: jsdaniell/create-json@1.1.2
         with:
           name: "gcloud.json"
           json: ${{ secrets.API_GCLOUD_KEY_CONTENTS }}
-          dir: 'keys/'
+          dir: 'api/keys/'
 
       - name: Copy files
         working-directory: api
