@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const cors = {
-    "origin": "http://localhost:8081,https://pisspricer.co.nz,https://dev.pisspricer.co.nz",
+    "origin": "http://localhost:8081",
     "methods": "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
     "preflightContinue": false,
     "optionsSuccessStatus": 204,

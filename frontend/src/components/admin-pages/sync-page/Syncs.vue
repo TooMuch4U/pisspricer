@@ -70,7 +70,9 @@ export default {
       syncs.getAll()
         .then((res) => {
           this.syncs = res.data
-          this.selectedSyncId = this.syncsAscending[0].id
+          if (this.syncs.length > 0) {
+            this.selectedSyncId = this.syncsAscending[0].id
+          }
           this.loadingSyncs = false
         })
     },
