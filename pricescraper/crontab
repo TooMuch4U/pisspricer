@@ -1,2 +1,2 @@
 # Container time is 13 hours behind NZD time
-30 23 * * * cd / && /usr/local/bin/python /start.py crawl newworld >> /var/logs/logfile 2>&1
+18 1 * * * cd / && /usr/local/bin/python /start.py crawl newworld >> /var/logs/logfile 2>&1
