@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import pytz
 
 from .singleton import Singleton
 from .environment import Environment
@@ -21,7 +22,11 @@ class Summarisation(metaclass=Singleton):
 
         base = os.path.dirname(os.path.realpath(__file__))
         self.path = os.path.join(base, self.REL_PATH)
-        self.path = os.path.join(self.path, str(datetime.datetime.now()))
+
+        # add datetime to path
+        timezone = pytz.timezone('Pacific/Auckland')
+        self.path = os.path.join(self.path, str(datetime.datetime.now(tz = timezone)))
+
         os.makedirs(self.path, exist_ok=True)
 
     def get_brand_path(self, brand_id):
