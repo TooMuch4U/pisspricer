@@ -1,6 +1,8 @@
 
 FROM python:3.8-buster
 
+ENV TZ="Pacific/Auckland"
+
 RUN apt-get update && apt-get -y install cron
 
 COPY ./scraper /scraper
