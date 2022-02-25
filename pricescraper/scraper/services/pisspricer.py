@@ -31,3 +31,15 @@ class PisspricerAdmin(metaclass=Singleton):
                 return brand['brandId']
         raise Exception(f"Brand with name '{name}' doesn't exist")
 
+    def get_existing_image_set(self, brand_id):
+        """ Takes a brand ID and returns a set of internal id's that have an image already
+        :param brand_id: Id of brand for the internal id's
+        :return: Set of internal id's
+        """
+        url = urljoin(Environment()[Environment.BASE_URL_KEY], f'brands/{brand_id}/items')
+        res = requests.get(url, headers=self.auth_headers)
+        internal_skus_with_image = set()
+        for item in res.json():
+            if item["hasImage"] == 1:
+                internal_skus_with_image.add(item["internalSku"])
+        return internal_skus_with_image
