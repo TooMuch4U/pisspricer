@@ -70,3 +70,7 @@ async function setOrUpdatePrice(sku, storeId, newItemPrice) {
     return await Prices.insertOrSetPrice(sku, storeId, newItemPrice);
 }
 exports.setOrUpdatePrice = setOrUpdatePrice;
+
+exports.getAllForBrand = async function (brandId) {
+    return await ItemsModel.getAllForBrand(brandId);
+}

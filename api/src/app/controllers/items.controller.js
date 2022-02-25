@@ -508,3 +508,23 @@ exports.setItemAndPrice = async function(req, res) {
         res.status(500).send()
     }
 };
+
+exports.getForBrand = async function(req, res) {
+    try {
+        // check brand exists
+        const brandId = req.params.brandId
+        const brand = await BrandsService.get(brandId);
+        if (!brand) {
+            res.statusMessage = `Brand with ID ${brandId} doesn't exist`;
+            res.status(404).send();
+        }
+
+        // get items
+        const items = await ItemsService.getAllForBrand(brandId);
+        res.status(200).json(items);
+    }
+    catch (err) {
+        if (!err.hasBeenLogged) {console.log(err)}
+        res.status(500).send()
+    }
+}
