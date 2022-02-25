@@ -40,6 +40,6 @@ class PisspricerAdmin(metaclass=Singleton):
         res = requests.get(url, headers=self.auth_headers)
         internal_skus_with_image = set()
         for item in res.json():
-            if item["hasImage"]:
+            if item["hasImage"] == 1:
                 internal_skus_with_image.add(item["internalSku"])
         return internal_skus_with_image
