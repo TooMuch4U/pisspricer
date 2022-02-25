@@ -1,15 +1,25 @@
 import logging
-
-import requests
+import aiohttp
+from aiohttp_retry import RetryClient
 
 
 class LocationPipeline:
 
     API_ADDRESS_TEMPLATE = "https://photon.komoot.io/api?q={}, New Zealand"
     API_GEO_TEMPLATE = "https://photon.komoot.io/reverse?lon={0}&lat={1}"
+    ERROR_STATUSES = {x for x in range(100, 600)} - {200}
     logger = logging.getLogger(__name__)
 
-    def process_item(self, item, _):
+    def __init__(self):
+        # photon api has a request limit of 7 per second
+        # this limits the number of open requests at a time to 5
+        connector = aiohttp.TCPConnector(limit=7)
+        self.session = RetryClient(connector=connector)
+
+    def close_spider(self, spider):
+        self.session.close()
+
+    async def process_item(self, item, _):
         location = item['store']['location']
 
         if all([
@@ -22,11 +32,11 @@ class LocationPipeline:
             return item
 
         if location.get('lattitude') and location.get('longitude'):
-            new_location = self.get_from_coordinates(location)
+            new_location = await self.get_from_coordinates(location)
             item['store']['location'] = self.fill_in_missing_fields(location, new_location)
 
         elif location.get('address'):
-            new_location = self.get_from_address(location)
+            new_location = await self.get_from_address(location)
             item['store']['location'] = self.fill_in_missing_fields(location, new_location)
 
         else:
@@ -34,13 +44,14 @@ class LocationPipeline:
 
         return item
 
-    @staticmethod
-    def get_from_coordinates(location):
+    async def get_from_coordinates(self, location):
         url = LocationPipeline.API_GEO_TEMPLATE.format(location['longitude'], location['lattitude'])
-        return requests.get(url).json()
+        async with self.session.get(url) as resp:
+            LocationPipeline.logger.info(f"Status code: {resp.status} for {resp.url}")
+            if resp.status not in self.ERROR_STATUSES:
+                return await resp.json(content_type=None)
 
-    @staticmethod
-    def get_from_address(location):
+    async def get_from_address(self, location):
         address = location['address']
 
         if location.get('region'):
@@ -49,7 +60,10 @@ class LocationPipeline:
             address += f", {location['postcode']}"
 
         url = LocationPipeline.API_ADDRESS_TEMPLATE.format(address)
-        return requests.get(url).json()
+        async with self.session.get(url) as resp:
+            LocationPipeline.logger.info(f"Status code: {resp.status} for {resp.url}")
+            if resp.status not in self.ERROR_STATUSES:
+                return await resp.json(content_type=None)
 
     @staticmethod
     def fill_in_missing_fields(location, new_location):
