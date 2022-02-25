@@ -46,7 +46,9 @@ class NewWorldSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super(NewWorldSpider, self).__init__(*args, **kwargs)
-        self.brand_id = PisspricerAdmin().get_brand_id("New World")
+        pisspricer = PisspricerAdmin()
+        self.brand_id = pisspricer.get_brand_id("New World")
+        self.skus_with_image = pisspricer.get_existing_image_set(self.brand_id)
         Summarisation().log_start(self.brand_id)
         dispatcher.connect(self.on_close, signals.spider_closed)
 
@@ -100,13 +102,17 @@ class NewWorldSpider(scrapy.Spider):
             loader.add_css('url', 'a.fs-product-card__details.u-color-black.u-no-text-decoration.u-cursor::attr(href)')
             loader.add_value('store', response.meta.get('store'))
 
-            image_url = product.css('div.fs-product-card__product-image').attrib['data-src-s']
+            # get image if its new, else load item
+            if self._image_already_exists(item_json[self.item_price_jmes_paths['productId']]):
+                yield self.load_item(loader)
+            else:
+                image_url = product.css('div.fs-product-card__product-image').attrib['data-src-s']
 
-            yield response.follow(
-                image_url,
-                callback=self.load_image,
-                meta={'item_loader': loader},
-                dont_filter=True)
+                yield response.follow(
+                    image_url,
+                    callback=self.load_image,
+                    meta={'item_loader': loader},
+                    dont_filter=True)
 
         store = response.meta.get('store')
         next_page = response.css('a.fs-pagination__btn--next').attrib.get('href')
@@ -127,10 +133,16 @@ class NewWorldSpider(scrapy.Spider):
 
         # add image to loader and load item
         loader.add_value('image', image)
-        loaded_item = loader.load_item()
+        yield self.load_item(loader)
 
-        self.logger.debug(f"Item found: {loaded_item.get('productName')}")
-        yield loaded_item
+    def load_item(self, loader):
+        loaded_item = loader.load_item()
+        self.logger.debug(f"Item loaded: {loaded_item.get('productName')}")
+        return loaded_item
+
+    def _image_already_exists(self, internal_sku):
+        """ Checks if the image already exists on pisspricer """
+        return internal_sku in self.skus_with_image
 
     def on_close(self):
         Summarisation().log_end(self.brand_id)
