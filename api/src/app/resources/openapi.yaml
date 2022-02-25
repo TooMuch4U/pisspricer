@@ -1495,6 +1495,45 @@ paths:
         '500':
           description: Server Error
 
+  /brands/{brandId}/items:
+    parameters:
+      - in: path
+        name: brandId
+        schema:
+          type: integer
+        required: true
+        description: "Brand Id"
+    get:
+      summary: "Gets all items stocked by a brand"
+      security: []
+      tags:
+        - Brand
+        - Items
+      responses:
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorised
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    sku:
+                      type: string
+                    hasImage:
+                      type: boolean
+                    internalSku:
+                      type: string
+
   /brands/{brandId}/fullitem:
     parameters:
       - in: path
