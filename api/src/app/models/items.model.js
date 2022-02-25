@@ -63,8 +63,7 @@ function buildSelectSql (query) {
     }
     // Distance filter
     if (typeof query.lat !== 'undefined') {
-        whereArray.push(`P.
-         in (SELECT store_loc_id 
+        whereArray.push(`P.store_loc_id in (SELECT store_loc_id 
                                             FROM location WHERE ST_Distance_Sphere(point(longitude, lattitude), point(?, ?))/1000 <= ? )`);
         data.push(query.lng);
         data.push(query.lat);
@@ -478,21 +477,6 @@ exports.getByInternalSku = async function (internalSku, brandId) {
 
             return tools.toCamelCase(item)
         }
-    }
-    catch (err) {
-        tools.logSqlError(err);
-        throw (err)
-    }
-};
-
-exports.getAllForBrand = async function(brandId) {
-    try {
-        const sql = `SELECT distinct I.name as name, I.sku as sku, I.has_image as hasImage, L.internal_sku as internalSku
-                    FROM location_stocks_item L 
-                        LEFT JOIN item I ON L.sku = I.sku
-                    WHERE L.store_loc_id in (SELECT L2.store_loc_id FROM store_location L2 WHERE L2.store_id = ?)`;
-        let rows = await db.getPool().query(sql, [brandId]);
-        return tools.toCamelCase(rows);
     }
     catch (err) {
         tools.logSqlError(err);

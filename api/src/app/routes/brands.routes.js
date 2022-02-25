@@ -1,4 +1,5 @@
 const brands = require('../controllers/brands.controller');
+const itemPrices = require('../controllers/itemPrices.controller');
 const items = require('../controllers/items.controller');
 const authenticate = require('../middleware/authenticate');
 
@@ -15,9 +16,6 @@ module.exports = function(app) {
 
     app.route(baseUrl + '/:brandId/fullitem')
         .put(authenticate.adminRequired, items.setItemAndPrice);
-
-    app.route(baseUrl + '/:brandId/items')
-        .get(authenticate.adminRequired, items.getForBrand);
 
     app.route(baseUrl + '/:brandId/image')
         .put(authenticate.adminRequired, brands.setImage);
