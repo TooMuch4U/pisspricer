@@ -33,7 +33,7 @@ class Location(scrapy.Item):
     lattitude = scrapy.Field()
     longitude = scrapy.Field()
     address = scrapy.Field()
-    postcode = scrapy.Field(input_processor=MapCompose(int))
+    postcode = scrapy.Field()
     region = scrapy.Field()
 
 
