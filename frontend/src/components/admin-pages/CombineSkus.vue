@@ -38,8 +38,13 @@
           <table class="m-auto w-100 p-2">
             <tbody>
 
-              <tr v-bind:key="name" v-for="(value, name) in itemInfoA.item">
+              <tr>
+                <router-link target="_blank" :to="{name: 'item', params: {slug: itemInfoA.item.slug}}">
+                  {{ itemInfoA.item.name }}
+                </router-link>
+              </tr>
 
+              <tr v-bind:key="name" v-for="(value, name) in itemInfoA.item">
                 <td class="text-left" v-if="canChange(name)">
                   <input v-if="isNumber(name)" class="form-control" :placeholder="name" v-model.number="itemInfoA.item[name]">
                   <input v-else class="form-control" :placeholder="name" v-model="itemInfoA.item[name]">
@@ -65,6 +70,12 @@
 
           <table class="m-auto w-100 p-2">
             <tbody>
+
+            <tr>
+              <router-link target="_blank" :to="{name: 'item', params: {slug: itemInfoB.item.slug}}">
+                {{ itemInfoB.item.name }}
+              </router-link>
+            </tr>
 
             <tr v-bind:key="name" v-for="(value, name) in itemInfoB.item">
 
