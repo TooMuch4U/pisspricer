@@ -1,5 +1,5 @@
 <template>
-  <img class="item-image" :src="imgSrc" :alt="`${sku} item image`" >
+  <img class="item-image" :src="imgSrc" alt="item" >
 </template>
 
 <script>

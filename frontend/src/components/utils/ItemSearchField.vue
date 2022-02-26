@@ -50,7 +50,7 @@ export default {
   },
 
   props: {
-    filterSku: Number,
+    filterSku: Number
   },
 
   methods: {

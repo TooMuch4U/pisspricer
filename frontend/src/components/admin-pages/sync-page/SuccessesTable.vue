@@ -88,6 +88,10 @@ export default {
           item['item'] = {...item.item, ...newItem, loaded: true}
           arr[index] = item
         })
+        .catch((err) => {
+          item['item'] = {...item.item, error: err}
+          arr[index] = item
+        })
     }
   }
 }

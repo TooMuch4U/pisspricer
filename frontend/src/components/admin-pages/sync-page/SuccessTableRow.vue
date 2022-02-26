@@ -8,9 +8,12 @@
     <!-- item -->
     <td class="text-left">
       <span v-if="item.item.loaded">
-            {{ item.item.name }}
-          </span>
-      <spinner v-else/>
+        {{ item.item.name }}
+      </span>
+      <spinner v-else-if="!item.item.error" />
+      <span class="text-danger" v-else>
+        {{ item.item.error.message }}
+      </span>
       <span class="text-muted"> {{ item.item.sku }} </span>
     </td>
 
