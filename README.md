@@ -1,5 +1,7 @@
 # Pisspricer
-![API Deploy](https://github.com/TooMuch4U/pisspricer/workflows/API%20Deploy/badge.svg?branch=master) ![Frontend](https://github.com/TooMuch4U/pisspricer/workflows/Frontend/badge.svg?branch=master)  
+![API](https://github.com/TooMuch4U/pisspricer/workflows/API%20Deploy/badge.svg?branch=master)
+![Frontend](https://github.com/TooMuch4U/pisspricer/workflows/Frontend/badge.svg?branch=master)  
+![Pricescraper](https://github.com/TooMuch4U/pisspricer/workflows/Pricescraper/badge.svg?branch=master)  
 New Zealand liquor price comparison website [pisspricer.co.nz](https://pisspricer.co.nz) 
 
 # Frontend
