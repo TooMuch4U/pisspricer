@@ -63,8 +63,7 @@ function buildSelectSql (query) {
     }
     // Distance filter
     if (typeof query.lat !== 'undefined') {
-        whereArray.push(`P.
-         in (SELECT store_loc_id 
+        whereArray.push(`P.store_loc_id in (SELECT store_loc_id 
                                             FROM location WHERE ST_Distance_Sphere(point(longitude, lattitude), point(?, ?))/1000 <= ? )`);
         data.push(query.lng);
         data.push(query.lat);
