@@ -35,7 +35,9 @@
 
         <!-- success count -->
         <td>
-          {{ brand.successCount }}
+          <a href="#" data-toggle="modal" :data-target="`#success-${brand.id}`">
+            {{ brand.successCount }}
+          </a>
         </td>
 
         <!-- fail count -->
@@ -59,6 +61,18 @@
           />
         </basic-modal>
 
+        <!-- success modal -->
+        <basic-modal
+          :modalId="`success-${brand.id}`"
+          :modalHeader="`${brand.name} Successes`"
+          modalDismissText="Close"
+        >
+          <successes-table
+            :successes="brand.successes"
+            :totalCount="brand.successCount"
+          />
+        </basic-modal>
+
       </tr>
 
       <tr>
@@ -78,6 +92,7 @@ import BrandImage from '@/components/images/BrandImage'
 import BasicModal from '@/components/modal/BasicModal'
 import FailsTable from '@/components/admin-pages/sync-page/FailsTable'
 import Spinner from '@/components/utils/Spinner'
+import SuccessesTable from '@/components/admin-pages/sync-page/SuccessesTable'
 
 export default {
   name: 'Sync.vue',
@@ -94,7 +109,7 @@ export default {
     }
   },
 
-  components: { BrandImage, BasicModal, FailsTable, Spinner },
+  components: { BrandImage, BasicModal, FailsTable, Spinner, SuccessesTable },
 
   mounted () {
     brands.getAll()

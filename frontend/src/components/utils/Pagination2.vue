@@ -2,7 +2,7 @@
   <nav>
     <ul class="pagination">
       <li
-        v-for="page in pages"
+        v-for="page in shownPages"
         :data-test="`page-link-${page}`"
         :key="`${page}-${currentPage}`"
         :class="paginationClass(page)"
@@ -21,7 +21,8 @@ export default {
 
   data () {
     return {
-      currentPage: 1
+      currentPage: 1,
+      numbersShown: 7
     }
   },
 
@@ -40,6 +41,21 @@ export default {
       return [
         ...Array(Math.ceil(this.totalCount / this.itemsPerPage)).keys()
       ].map(e => e + 1)
+    },
+
+    shownPages () {
+      let start = this.currentPage - ((this.numbersShown - 1) / 2)
+      let end = this.currentPage + ((this.numbersShown - 1) / 2)
+
+      if (start < 1) {
+        end += 1 - start
+        start = 1
+      }
+      if (end > this.totalCount) {
+        end = this.pages[-1]
+      }
+
+      return this.pages.slice(start - 1, end)
     }
   },
 

@@ -16,7 +16,7 @@ import Syncs from '../components/admin-pages/sync-page/Syncs'
 
 Vue.use(Router)
 
-export default new Router({
+let router = new Router({
   routes: [
     {
       path: '/',
@@ -84,3 +84,12 @@ export default new Router({
   ],
   mode: 'history'
 })
+
+router.beforeEach((to, from, next) => {
+  // hide any modals before leaving
+  // eslint-disable-next-line
+  $('.modal.show').modal('hide')
+  next()
+})
+
+export default router
