@@ -40,7 +40,7 @@ export default {
   data () {
     return {
       page: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 25,
       loadedItems: [],
       skuToCombine: null
     }

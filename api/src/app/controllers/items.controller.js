@@ -374,8 +374,10 @@ exports.getSuggestions = async function(req, res) {
             res.status(400).send();
             return
         }
+        let count = +req.query.count
+        count = count > 0 ? count : 5
 
-        let items = await Items.getSuggestions(req.query.search, max_length);
+        let items = await Items.getSuggestions(req.query.search, count);
         res.status(200).json(items)
 
     }

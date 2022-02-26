@@ -44,7 +44,7 @@ export default {
       items: null,
       itemsCount: 0,
       itemsTotalCount: 0,
-      itemLimit: 5,
+      itemLimit: 25,
       hide: false
     }
   },
