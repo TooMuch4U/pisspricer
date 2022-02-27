@@ -84,9 +84,15 @@ class LocationPipeline:
                 location['address'] = new_address
 
         if not location.get('postcode'):
-            location['postcode'] = location_properties.get('postcode')
+            location['postcode'] = int_if_possible(location_properties.get('postcode'))
 
         if not location.get('region'):
             location['region'] = location_properties.get('state')
 
         return location
+
+
+def int_if_possible(field):
+    if field.isdigit():
+        return int(field)
+    return field

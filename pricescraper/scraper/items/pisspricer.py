@@ -3,7 +3,6 @@ Items that model what is used by pisspricer api
 """
 
 import scrapy
-from itemloaders.processors import MapCompose
 
 
 class FullItem(scrapy.Item):
