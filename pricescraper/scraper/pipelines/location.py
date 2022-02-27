@@ -1,6 +1,8 @@
 import logging
-import aiohttp
-from aiohttp_retry import RetryClient
+from aiohttp_retry import RetryClient, ExponentialRetry
+
+from ..services.ratelimiter import RateLimiter
+from scrapy.exceptions import DropItem
 
 
 class LocationPipeline:
@@ -11,13 +13,12 @@ class LocationPipeline:
     logger = logging.getLogger(__name__)
 
     def __init__(self):
-        # photon api has a request limit of 7 per second
-        # this limits the number of open requests at a time to 5
-        connector = aiohttp.TCPConnector(limit=7)
-        self.session = RetryClient(connector=connector)
+        # connector = aiohttp.TCPConnector(limit=7)
+        retry_options = ExponentialRetry(attempts=3, statuses=self.ERROR_STATUSES, start_timeout=1)
+        self.session = RateLimiter(RetryClient(retry_options=retry_options))
 
-    def close_spider(self, spider):
-        self.session.close()
+    # def close_spider(self, spider):
+    #     self.session.close()
 
     async def process_item(self, item, _):
         location = item['store']['location']
@@ -46,7 +47,7 @@ class LocationPipeline:
 
     async def get_from_coordinates(self, location):
         url = LocationPipeline.API_GEO_TEMPLATE.format(location['longitude'], location['lattitude'])
-        async with self.session.get(url) as resp:
+        async with await self.session.get(url) as resp:
             LocationPipeline.logger.info(f"Status code: {resp.status} for {resp.url}")
             if resp.status not in self.ERROR_STATUSES:
                 return await resp.json(content_type=None)
@@ -60,10 +61,11 @@ class LocationPipeline:
             address += f", {location['postcode']}"
 
         url = LocationPipeline.API_ADDRESS_TEMPLATE.format(address)
-        async with self.session.get(url) as resp:
-            LocationPipeline.logger.info(f"Status code: {resp.status} for {resp.url}")
-            if resp.status not in self.ERROR_STATUSES:
-                return await resp.json(content_type=None)
+        resp = await self.session.get(url)
+        LocationPipeline.logger.info(f"Status code: {resp.status} for {resp.url}")
+        if resp.status not in self.ERROR_STATUSES:
+            return await resp.json(content_type=None)
+        raise DropItem(f"Location api returned status code {resp.status} for {url}")
 
     @staticmethod
     def fill_in_missing_fields(location, new_location):
@@ -82,7 +84,7 @@ class LocationPipeline:
                 location['address'] = new_address
 
         if not location.get('postcode'):
-            location['postcode'] = int(location_properties.get('postcode'))
+            location['postcode'] = location_properties.get('postcode')
 
         if not location.get('region'):
             location['region'] = location_properties.get('state')
