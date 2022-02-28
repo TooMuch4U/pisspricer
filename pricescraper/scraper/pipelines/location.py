@@ -1,5 +1,7 @@
 import logging
 from aiohttp_retry import RetryClient, ExponentialRetry
+from aiocache import cached
+from aiocache.serializers import PickleSerializer
 
 from ..services.ratelimiter import RateLimiter
 from scrapy.exceptions import DropItem
@@ -13,12 +15,8 @@ class LocationPipeline:
     logger = logging.getLogger(__name__)
 
     def __init__(self):
-        # connector = aiohttp.TCPConnector(limit=7)
         retry_options = ExponentialRetry(attempts=3, statuses=self.ERROR_STATUSES, start_timeout=1)
         self.session = RateLimiter(RetryClient(retry_options=retry_options))
-
-    # def close_spider(self, spider):
-    #     self.session.close()
 
     async def process_item(self, item, _):
         location = item['store']['location']
@@ -33,7 +31,7 @@ class LocationPipeline:
             return item
 
         if location.get('lattitude') and location.get('longitude'):
-            new_location = await self.get_from_coordinates(location)
+            new_location = await self.get_from_coordinates(location['longitude'], location['lattitude'])
             item['store']['location'] = self.fill_in_missing_fields(location, new_location)
 
         elif location.get('address'):
@@ -45,14 +43,17 @@ class LocationPipeline:
 
         return item
 
-    async def get_from_coordinates(self, location):
-        url = LocationPipeline.API_GEO_TEMPLATE.format(location['longitude'], location['lattitude'])
+    @cached(ttl=500, serializer=PickleSerializer())
+    async def get_from_coordinates(self, lng, lat):
+        url = LocationPipeline.API_GEO_TEMPLATE.format(lng, lat)
         async with await self.session.get(url) as resp:
             LocationPipeline.logger.info(f"Status code: {resp.status} for {resp.url}")
             if resp.status not in self.ERROR_STATUSES:
                 return await resp.json(content_type=None)
+            raise DropItem(f"Location api returned status code {resp.status} for {url}")
 
     async def get_from_address(self, location):
+        # TODO: This method needs updated to use the same syntax as the get_from_coordinates method when it gets used
         address = location['address']
 
         if location.get('region'):

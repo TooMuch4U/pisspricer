@@ -1,29 +1,20 @@
 import base64
-import scrapy
 import json
 import requests
+
+from .brand import AbstractBrandSpider
 from ..items.newworld import ItemAtPrice, Store
 from scrapy.loader import ItemLoader
 from itemloaders.processors import TakeFirst, SelectJmes
-from pydispatch import dispatcher
-from scrapy import signals
-
 from ..services.images import process_response_content
 from ..services.pisspricer import PisspricerAdmin
-from ..services.summarisation import Summarisation
+from ..pipelines.newworld_transform import NewWorldItemTransformPipeline
 
 NW_BEER_AND_WINE_PAGE_URL = 'https://www.newworld.co.nz/shop/category/beer-cider-and-wine?ps=50'
 
 
-class NewWorldSpider(scrapy.Spider):
+class NewWorldSpider(AbstractBrandSpider):
     name = 'newworld'
-    custom_settings = {
-        'ITEM_PIPELINES': {
-            'scraper.pipelines.newworld_transform.NewWorldItemTransformPipeline': 100,
-            'scraper.pipelines.location.LocationPipeline': 200,
-            'scraper.pipelines.sendtoapi.SavePipeline': 800
-        }
-    }
     allowed_domains = ['newworld.co.nz', 'fsimg.co.nz']
     start_urls = ['https://www.newworld.co.nz/']
     api_url = "https://www.newworld.co.nz/CommonApi"
@@ -45,12 +36,9 @@ class NewWorldSpider(scrapy.Spider):
     }
 
     def __init__(self, *args, **kwargs):
-        super(NewWorldSpider, self).__init__(*args, **kwargs)
+        super(NewWorldSpider, self).__init__("New World", *args, **kwargs)
         pisspricer = PisspricerAdmin()
-        self.brand_id = pisspricer.get_brand_id("New World")
         self.skus_with_image = pisspricer.get_existing_image_set(self.brand_id)
-        Summarisation().log_start(self.brand_id)
-        dispatcher.connect(self.on_close, signals.spider_closed)
 
     def parse(self, response, **kwargs):
         # get the ID of all New World stores from API
@@ -138,11 +126,9 @@ class NewWorldSpider(scrapy.Spider):
     def load_item(self, loader):
         loaded_item = loader.load_item()
         self.logger.debug(f"Item loaded: {loaded_item.get('productName')}")
-        return loaded_item
+        transformed_item = NewWorldItemTransformPipeline().process_item(loaded_item, self)
+        return transformed_item
 
     def _image_already_exists(self, internal_sku):
         """ Checks if the image already exists on pisspricer """
         return internal_sku in self.skus_with_image
-
-    def on_close(self):
-        Summarisation().log_end(self.brand_id)

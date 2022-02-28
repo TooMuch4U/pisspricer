@@ -64,8 +64,7 @@ ROBOTSTXT_OBEY = True
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'scraper.pipelines.location.LocationPipeline': 200,
-    'scraper.pipelines.sendtoapi.SavePipeline': 800,
-    # 'scraper.pipelines.JsonWriterPipeline': 800,
+    'scraper.pipelines.sendtoapi.SavePipeline': 800
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
