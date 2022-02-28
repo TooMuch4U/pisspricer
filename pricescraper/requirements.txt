@@ -39,4 +39,4 @@ zope.interface==5.4.0
 pytz==2021.3
 aiohttp==3.8.1
 aiohttp-retry==2.4.6
-aiocache=0.11.1
+aiocache==0.11.1
