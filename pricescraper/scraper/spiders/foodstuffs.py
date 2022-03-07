@@ -98,6 +98,15 @@ class AbstractFoodstuffsSpider(AbstractBrandSpider):
             loader.add_css('url', 'a.fs-product-card__details.u-color-black.u-no-text-decoration.u-cursor::attr(href)')
             loader.add_value('store', response.meta.get('store'))
 
+            # volume or pack size
+            size = loader.get_css('p.u-color-half-dark-grey::text')
+            if len(size) > 0:
+                size = size[0]
+                if "ml" in size:
+                    loader.add_value('volume', size.rstrip("ml"))
+                elif "pk" in size:
+                    loader.add_value('packSize', size.rstrip("pk"))
+
             # get image if its new, else load item
             if self._image_already_exists(item_json[self.item_price_jmes_paths['productId']]):
                 yield self.load_item(loader)

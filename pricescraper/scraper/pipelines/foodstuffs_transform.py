@@ -16,6 +16,10 @@ class FoodstuffsItemTransformPipeline:
         new_item['name'] = item['productName']
         if item.get('image'):
             new_item['image'] = item.get('image')
+        if item.get('packSize'):
+            new_item['packSize'] = item.get('packSize')
+        if item.get('volume'):
+            new_item['volumeEach'] = item.get('volume')
         return new_item
 
     @staticmethod

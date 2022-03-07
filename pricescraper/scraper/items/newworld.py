@@ -19,6 +19,8 @@ class ItemAtPrice(scrapy.Item):
     productName = scrapy.Field()
     store = scrapy.Field()
     image = scrapy.Field()
+    volume = scrapy.Field(input_processor=MapCompose(int))
+    packSize = scrapy.Field(input_processor=MapCompose(int))
 
 
 class Store(scrapy.Item):
