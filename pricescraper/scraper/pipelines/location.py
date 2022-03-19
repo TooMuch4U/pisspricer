@@ -84,7 +84,10 @@ class LocationPipeline:
                 location['address'] = new_address
 
         if not location.get('postcode'):
-            location['postcode'] = int_if_possible(location_properties.get('postcode'))
+            postcode = int_if_possible(location_properties.get('postcode'))
+            if postcode == "NTL 0110":
+                postcode = 110
+            location['postcode'] = int_if_possible(postcode)
 
         if not location.get('region'):
             location['region'] = location_properties.get('state')
