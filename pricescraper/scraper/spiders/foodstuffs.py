@@ -37,7 +37,7 @@ class AbstractFoodstuffsSpider(AbstractBrandSpider):
         super(AbstractFoodstuffsSpider, self).__init__(pisspricer_brand_name, *args, **kwargs)
 
         # set constants
-        self.allowed_domains = [base_url, 'fsimg.co.nz']
+        self.allowed_domains = [base_url.lstrip("https://"), 'fsimg.co.nz']
         self.start_urls = [base_url]
         self.api_url = urljoin(base_url, "/CommonApi")
 
