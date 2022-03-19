@@ -1,10 +1,9 @@
 import logging
 from aiohttp_retry import RetryClient, ExponentialRetry
-from aiocache import cached
-from aiocache.serializers import PickleSerializer
+from async_lru import alru_cache
+from scrapy.exceptions import DropItem
 
 from ..services.ratelimiter import RateLimiter
-from scrapy.exceptions import DropItem
 
 
 class LocationPipeline:
@@ -43,7 +42,7 @@ class LocationPipeline:
 
         return item
 
-    @cached(ttl=500, serializer=PickleSerializer())
+    @alru_cache(maxsize=32)
     async def get_from_coordinates(self, lng, lat):
         url = LocationPipeline.API_GEO_TEMPLATE.format(lng, lat)
         async with await self.session.get(url) as resp:
