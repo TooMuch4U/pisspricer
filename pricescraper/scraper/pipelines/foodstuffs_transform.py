@@ -1,8 +1,7 @@
 from ..items.pisspricer import FullItem, Item, Location, Store, ItemPrice
-from ..services.images import image_base64_from_url
 
 
-class NewWorldItemTransformPipeline:
+class FoodstuffsItemTransformPipeline:
 
     def process_item(self, item, _):
         new_item = FullItem()
@@ -17,13 +16,16 @@ class NewWorldItemTransformPipeline:
         new_item['name'] = item['productName']
         if item.get('image'):
             new_item['image'] = item.get('image')
+        if item.get('packSize'):
+            new_item['packSize'] = item.get('packSize')
+        if item.get('volume'):
+            new_item['volumeEach'] = item.get('volume')
         return new_item
 
     @staticmethod
     def create_item_price(item):
         item_price = ItemPrice()
         if not item.get('basePrice'):
-            item_price['salePrice'] = None
             item_price['price'] = item['price']
         else:
             item_price['salePrice'] = item['price']
@@ -36,7 +38,7 @@ class NewWorldItemTransformPipeline:
     @staticmethod
     def create_store(item):
         store = Store()
-        store['location'] = NewWorldItemTransformPipeline.create_location(item)
+        store['location'] = FoodstuffsItemTransformPipeline.create_location(item)
         store['name'] = item['store']['name']
         store['internalId'] = item['store']['id']
         store['url'] = item['store']['id']  # url is a required field
