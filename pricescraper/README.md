@@ -4,7 +4,7 @@ Web spider using the scrapy framework
 ```bash
 python3 -m venv ./venv
 source ./venv/bin/activate
-pip install < pricescraper/requirements.txt
+pip install -r pricescraper/requirements.txt
 ```
 
 ### Environment Variables

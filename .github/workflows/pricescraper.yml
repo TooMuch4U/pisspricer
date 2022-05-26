@@ -39,3 +39,28 @@ jobs:
         run: |
           docker-compose build
           docker-compose up -d
+
+  deploy-legacy:
+    runs-on: [self-hosted, scrape-vm]
+    steps:
+      - uses: TooMuch4U/actions-clean@v2.1
+      - uses: actions/checkout@master
+
+      - name: Create scraper env file
+        working-directory: scraper-legacy
+        run: |
+          touch .env
+          echo pisspricer.email=${{ secrets.SCRAPER_EMAIL }} >> .env
+          echo pisspricer.password=${{ secrets.SCRAPER_PASSWORD }} >> .env
+          echo pisspricer.url=https://pisspricer.co.nz/api/v1/ >> .env
+          echo maps_api_key=${{ secrets.SCRAPER_LEGACY_MAPS_API_KEY }} >> .env
+          cat .env
+
+      - name: Copy files
+        run: cp -r ./scraper-legacy/. /containers/scraper-legacy
+
+      - name: docker-compose up
+        working-directory: /containers/scraper-legacy
+        run: |
+          docker-compose build
+          docker-compose up -d

@@ -11,3 +11,4 @@
 *.env
 /pricescraper/summary/
 /pricescraper/logs/
+/scraper-legacy/venv/

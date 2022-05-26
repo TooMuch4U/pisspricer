@@ -1,0 +1,10 @@
+version: '3'
+services:
+  scraper:
+    build: ""
+    volumes:
+      - ./logs:/var/logs
+    environment:
+      - pisspricer.name
+      - pisspricer.password
+      - pisspricer.url
