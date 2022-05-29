@@ -13,7 +13,7 @@ password = os.environ.get('pisspricer.password')
 res = requests.post(url + '/users/login', json={"email": email, "password": password})
 
 if not res.ok:
-    raise Exception("Login to API failed")
+    raise Exception(f"Login to API failed ('{email}', '{password}', '{url}')")
 res_json = res.json()
 token = res_json["authToken"]
 headers = {"X-Authorization": token}
