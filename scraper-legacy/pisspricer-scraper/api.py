@@ -8,10 +8,12 @@ dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
 
 url = os.getenv('pisspricer.url')
+if not url.endswith('/'):
+    url += '/'
 email = os.environ.get('pisspricer.email')
 password = os.environ.get('pisspricer.password')
 
-res = requests.post(urljoin(url, '/users/login'), json={"email": email, "password": password})
+res = requests.post(urljoin(url, 'users/login'), json={"email": email, "password": password})
 
 if not res.ok:
     raise Exception(f"Login to API failed ('{email}', '{password}', '{url}')")
