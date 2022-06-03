@@ -1,2 +1,2 @@
 # run at 10:30pm everyday
-10 30 * * * cd / && /usr/local/bin/python pisspricer-scraper scrape-all > /var/logs/logfile 2>&1
+15 14 * * * cd / && /usr/local/bin/python pisspricer-scraper scrape-all > /var/logs/logfile 2>&1
