@@ -8,6 +8,7 @@ const validator = require('../services/validator');
 const StoresService = require("../services/stores.service");
 const ItemsService = require("../services/items.service");
 const BrandsService = require("../services/brands.service");
+const CategoriesService = require("../services/categories.service");
 
 exports.create = async function (req, res) {
     const rules = {
@@ -464,7 +465,9 @@ exports.setItemAndPrice = async function(req, res) {
         const newItemPrice = body.itemPrice;
         const newItem = body.item;
         const newItemImage = newItem.image ? Buffer.from(newItem.image, 'base64') : null;
+        const newCategory = newItem.category;
         delete newItem.image;
+        delete newItem.category;
 
         // create or get the store
         let store = await StoresService.getStoreByInternalId(newStore.internalId, brandId);
@@ -473,6 +476,12 @@ exports.setItemAndPrice = async function(req, res) {
         if (!storeId) {
             storeId = await StoresService.create(newStore, brandId);
             storeCreated = true;
+        }
+
+        // create or get the category
+        if (newCategory) {
+            const category = await CategoriesService.getByNameOrCreate(newCategory);
+            newItem.categoryId = category.id
         }
 
         // create or get the item
