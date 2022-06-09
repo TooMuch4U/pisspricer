@@ -6,7 +6,7 @@ WORKDIR /usr/src/app
 # Install app dependencies
 COPY ./src/package*.json ./
 
-RUN npm install
+RUN npm ci
 # If you are building your code for production
 # RUN npm ci --only=production
 

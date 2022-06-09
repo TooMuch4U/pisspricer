@@ -466,8 +466,10 @@ exports.setItemAndPrice = async function(req, res) {
         const newItem = body.item;
         const newItemImage = newItem.image ? Buffer.from(newItem.image, 'base64') : null;
         const newCategory = newItem.category;
+        const barcodes = newItem.barcodes;
         delete newItem.image;
         delete newItem.category;
+        delete newItem.barcodes;
 
         // create or get the store
         let store = await StoresService.getStoreByInternalId(newStore.internalId, brandId);
@@ -481,17 +483,11 @@ exports.setItemAndPrice = async function(req, res) {
         // create or get the category
         if (newCategory) {
             const category = await CategoriesService.getByNameOrCreate(newCategory);
-            newItem.categoryId = category.id
+            newItem.categoryId = category.categoryId
         }
 
         // create or get the item
-        let item = await ItemsService.getItemByInternalSku(newItemPrice.internalSku, brandId);
-        let itemCreated = false;
-        if (!item) {
-            const sku = await ItemsService.create(newItem);
-            item = await ItemsService.getBySku(sku);
-            itemCreated = true;
-        }
+        const {item, itemCreated} = await ItemsService.createOrGetItem(newItemPrice.internalSku, brandId, newItem, barcodes)
         let sku = item.sku;
 
         let imageCreated = false;

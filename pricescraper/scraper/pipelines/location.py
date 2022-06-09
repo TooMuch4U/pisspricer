@@ -2,6 +2,8 @@ import logging
 from aiohttp_retry import RetryClient, ExponentialRetry
 from async_lru import alru_cache
 from scrapy.exceptions import DropItem
+from aiohttp.client_exceptions import ServerDisconnectedError, ClientConnectorError, ClientOSError
+import asyncio
 
 from ..services.ratelimiter import RateLimiter
 
@@ -45,14 +47,24 @@ class LocationPipeline:
     @alru_cache(maxsize=32)
     async def get_from_coordinates(self, lng, lat):
         url = LocationPipeline.API_GEO_TEMPLATE.format(lng, lat)
-        async with await self.session.get(url) as resp:
-            LocationPipeline.logger.info(f"Status code: {resp.status} for {resp.url}")
-            if resp.status not in self.ERROR_STATUSES:
-                return await resp.json(content_type=None)
-            raise DropItem(f"Location api returned status code {resp.status} for {url}")
+        attempt_count = 0
+        while True:
+            attempt_count += 1
+            try:
+                async with await self.session.get(url) as resp:
+                    LocationPipeline.logger.info(f"Status code: {resp.status} for {resp.url}")
+                    if resp.status not in self.ERROR_STATUSES:
+                        return await resp.json(content_type=None)
+                    raise DropItem(f"Location api returned status code {resp.status} for {url}")
+            except (ServerDisconnectedError, ClientConnectorError, ClientOSError) as err:
+                print("Oops, the server connection was dropped on ", url, ": ", err)
+                await asyncio.sleep(10)
+                if attempt_count > 3:
+                    raise err
 
     async def get_from_address(self, location):
         # TODO: This method needs updated to use the same syntax as the get_from_coordinates method when it gets used
+        raise Exception("TODO: This method needs updated to use the same syntax as the get_from_coordinates method when it gets used")
         address = location['address']
 
         if location.get('region'):
@@ -87,7 +99,7 @@ class LocationPipeline:
             postcode = int_if_possible(location_properties.get('postcode'))
             if postcode == "NTL 0110":
                 postcode = 110
-            location['postcode'] = int_if_possible(postcode)
+            location['postcode'] = postcode
 
         if not location.get('region'):
             location['region'] = location_properties.get('state')

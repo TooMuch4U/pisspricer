@@ -3,6 +3,7 @@ Items that model what is used by pisspricer api
 """
 
 import scrapy
+from itemloaders.processors import MapCompose
 
 
 class FullItem(scrapy.Item):
@@ -20,12 +21,13 @@ class ItemPrice(scrapy.Item):
 class Item(scrapy.Item):
     name = scrapy.Field()
     brand = scrapy.Field()
-    stdDrinks = scrapy.Field()
-    alcoholContent = scrapy.Field()
-    volumeEach = scrapy.Field()
-    packSize = scrapy.Field()
+    stdDrinks = scrapy.Field(input_processor=MapCompose(float))
+    alcoholContent = scrapy.Field(input_processor=MapCompose(float))
+    volumeEach = scrapy.Field(input_processor=MapCompose(int))
+    packSize = scrapy.Field(input_processor=MapCompose(int))
     category = scrapy.Field()
     image = scrapy.Field()
+    barcodes = scrapy.Field(output_processor=MapCompose())
 
 
 class Location(scrapy.Item):

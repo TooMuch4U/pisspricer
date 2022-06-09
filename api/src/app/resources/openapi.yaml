@@ -1879,6 +1879,10 @@ components:
                 $ref: '#/components/schemas/Item/properties/volumeEach'
               packSize:
                 $ref: '#/components/schemas/Item/properties/packSize'
+              barcodes:
+                type: array
+                items:
+                  type: string
               category:
                 type: string
                 example: 'Beer'

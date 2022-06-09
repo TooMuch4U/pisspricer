@@ -27,6 +27,79 @@ exports.insert = async function (itemData, barcodeData, slugName) {
         conn.release();
     }
 };
+
+exports.insertWithBarcodeList = async function (itemData, barcodes, slugName, connection = null) {
+    let conn = connection;
+    if (!conn) {
+        conn = await db.getPool().getConnection();
+        await conn.beginTransaction();
+    }
+
+    const sqlItem = `INSERT INTO item SET ?, slug = slugify(?)`;
+    const sqlBarcode = `INSERT INTO item_barcode SET ?, ?;`;
+    try {
+        let result1 = await conn.query(sqlItem, [itemData, slugName]);
+        let sku = result1.insertId;
+        for (const barcode of barcodes) {
+            await conn.query(sqlBarcode, [{sku}, {'ean': barcode}]);
+        }
+
+        if (!connection) {
+            await conn.commit();
+        }
+
+        return sku;
+    }
+    catch (err) {
+        if (!connection) {
+            await conn.rollback();
+        }
+        tools.logSqlError(err);
+        throw (err)
+    }
+    finally {
+        if (!connection) {
+            await conn.release();
+        }
+    }
+};
+
+exports.getByBarcode = async function (itemData, barcodes, slugName, connection = null) {
+    let conn = connection;
+    if (!conn) {
+        conn = await db.getPool().getConnection();
+        await conn.beginTransaction();
+    }
+
+    const sqlItem = `INSERT INTO item SET ?, slug = slugify(?)`;
+    const sqlBarcode = `INSERT INTO item_barcode SET ?, ?;`;
+    try {
+        let result1 = await conn.query(sqlItem, [itemData, slugName]);
+        let sku = result1.insertId;
+        for (const barcode of barcodes) {
+            await conn.query(sqlBarcode, [{sku}, {'ean': barcode}]);
+        }
+
+        if (!connection) {
+            await conn.commit();
+        }
+
+        return sku;
+    }
+    catch (err) {
+        if (!connection) {
+            await conn.rollback();
+        }
+        tools.logSqlError(err);
+        throw (err)
+    }
+    finally {
+        if (!connection) {
+            await conn.release();
+        }
+    }
+};
+
 function buildSelectSql (query) {
 
     // --- SELECT ---
@@ -185,7 +258,12 @@ exports.getAllAdmin = async function () {
         throw (err)
     }
 };
-exports.getBySku = async function (sku) {
+exports.getBySku = async function (sku, connection = null) {
+    let conn = connection;
+    if (!conn) {
+        conn = await db.getPool();
+    }
+
     const sqlItem = `SELECT I.*, 
                             C.name as category,
                             S.name as subcategory
@@ -195,12 +273,12 @@ exports.getBySku = async function (sku) {
                      WHERE sku = ?`;
     const sqlBarcodes = `SELECT ean FROM item_barcode WHERE sku = ?`;
     try {
-        const items = await db.getPool().query(sqlItem, [sku]);
+        const items = await conn.query(sqlItem, [sku]);
         if (items.length < 1) {
             return null;
         }
         else {
-            const barcodes = await db.getPool().query(sqlBarcodes, [sku]);
+            const barcodes = await conn.query(sqlBarcodes, [sku]);
             let item = items[0];
             item.barcodes = [];
             for (let i = 0; i < barcodes.length; i++) {
@@ -278,11 +356,12 @@ exports.deleteBarcode = async function (sku, ean) {
         throw (err);
     }
 };
-exports.insertBarcode = async function (sku, ean) {
+exports.insertBarcode = async function (sku, ean, connection = null) {
     const sql = `INSERT INTO item_barcode SET sku = ?, ean = ?`;
     let result;
     try {
-        result = await db.getPool().query(sql, [sku, ean.toString()]);
+        const conn = connection ? connection : await db.getPool();
+        result = await conn.query(sql, [sku, ean.toString()]);
     }
     catch (err) {
         tools.logSqlError(err);
@@ -292,6 +371,19 @@ exports.insertBarcode = async function (sku, ean) {
         throw Error(`Should be 1 row inserted, there was actually: ${result.changedRows}`);
     }
 };
+
+// returns all barcodes in database
+exports.getBarcodes = async function (connection = null) {
+    const sql = `SELECT ean, sku FROM item_barcode`;
+    try {
+        const conn = connection ? connection : await db.getPool();
+        return await conn.query(sql);
+    }
+    catch (err) {
+        tools.logSqlError(err);
+        throw (err)
+    }
+}
 
 exports.setImage = async function (sku, hasImage) {
     const sql = `UPDATE item SET has_image = ? WHERE sku = ?`;
@@ -412,15 +504,25 @@ exports.getSuggestions = async function(search, maxLength) {
     }
 };
 
-exports.combineItems = async function (sku, duplicateSku, data, deleteDuplicateImage) {
+exports.combineItems = async function (sku, duplicateSku, data, deleteDuplicateImage, connection = null) {
+    const deleteDuplicateEntriesSql =
+        `DELETE FROM location_stocks_item WHERE sku = ? 
+         AND store_loc_id in (SELECT store_loc_id FROM (SELECT sku, store_loc_id FROM location_stocks_item) AS LSI2 WHERE sku in (?) group by store_loc_id HAVING count(sku) > 1)`;
     const updateSkuSql = `UPDATE location_stocks_item SET sku = ? WHERE sku = ?`;
     const updateBarcodeSql = `UPDATE item_barcode SET sku = ? WHERE sku = ?`;
     const deleteSkuSql = `DELETE FROM item WHERE sku = ?`;
     const updateItemSql = `UPDATE item SET ? WHERE sku = ?`;
 
-    const conn = await db.getPool().getConnection();
-    await conn.beginTransaction();
+    let conn = connection;
+    if (!conn) {
+        conn = await db.getPool().getConnection();
+        await conn.beginTransaction();
+    }
+
     try {
+        // delete one entry where both skus exist for the same store location
+        await conn.query(deleteDuplicateEntriesSql, [duplicateSku, [sku, duplicateSku]])
+
         // Change price entries for the old sku to the new sku
         await conn.query(updateSkuSql, [sku, duplicateSku]);
 
@@ -439,19 +541,25 @@ exports.combineItems = async function (sku, duplicateSku, data, deleteDuplicateI
             await Images.deleteImage(duplicateSku, true);
         }
 
-        await conn.commit();
+        if (!connection) {
+            await conn.commit();
+        }
     }
     catch (err) {
-        await conn.rollback();
+        if (!connection) {
+            await conn.rollback();
+        }
         tools.logSqlError(err);
         throw (err)
     }
     finally {
-        conn.release();
+        if (!connection) {
+            conn.release();
+        }
     }
 };
 
-exports.getByInternalSku = async function (internalSku, brandId) {
+exports.getByInternalSku = async function (internalSku, brandId, connection = null) {
     const sqlItem = `SELECT I.*, 
                             C.name as category,
                             S.name as subcategory
@@ -463,20 +571,59 @@ exports.getByInternalSku = async function (internalSku, brandId) {
     const sqlBarcodes = `SELECT ean FROM item_barcode WHERE sku = (SELECT distinct sku FROM location_stocks_item LS WHERE LS.internal_sku = ? 
                         AND LS.store_loc_id in (SELECT store_loc_id FROM store_location SL WHERE SL.store_id = ?)) `;
     try {
-        const items = await db.getPool().query(sqlItem, [internalSku, brandId]);
+        const conn = connection ? connection : await db.getPool();
+        const items = await conn.query(sqlItem, [internalSku, brandId]);
         if (items.length < 1) {
             return null;
         }
         else {
-            const barcodes = await db.getPool().query(sqlBarcodes, [internalSku, brandId]);
+            const barcodes = await conn.query(sqlBarcodes, [internalSku, brandId]);
             let item = items[0];
-            item.barcodes = [];
-            for (let i = 0; i < barcodes.length; i++) {
-                item.barcodes.push(Object.values(barcodes[i])[0]);
-            }
+            item.barcodes = barcodes.map(barcode_item => barcode_item.ean);
 
             return tools.toCamelCase(item)
         }
+    }
+    catch (err) {
+        tools.logSqlError(err);
+        throw (err)
+    }
+};
+
+exports.getByBarcodes = async function (barcodes, connection = null) {
+    const sqlItem = `SELECT I.*, 
+                            C.name as category,
+                            S.name as subcategory
+                     FROM item I 
+                          LEFT JOIN category C ON I.category_id = C.category_id
+                          LEFT JOIN subcategory S ON I.subcategory_id = S.subcategory_id
+                     WHERE sku = (SELECT sku FROM item_barcode WHERE ean in (?))`;
+    const sqlBarcodes = `SELECT ean FROM item_barcode WHERE sku = (SELECT IB2.sku FROM item_barcode IB2 WHERE IB2.ean in (?)) `;
+    try {
+        const conn = connection ? connection : await db.getPool();
+        const items = await conn.query(sqlItem, [barcodes]);
+        if (items.length < 1) {
+            return null;
+        }
+        else {
+            const allItemBarcodes = await conn.query(sqlBarcodes, [barcodes]);
+            let item = items[0];
+            item.barcodes = allItemBarcodes.map(barcode_item => barcode_item.ean);
+
+            return tools.toCamelCase(item)
+        }
+    }
+    catch (err) {
+        tools.logSqlError(err);
+        throw (err)
+    }
+};
+
+exports.getSkusAssociatedWithBarcodes = async function (barcodes, connection = null) {
+    const sqlBarcodes = `SELECT sku FROM item_barcode WHERE ean in (?) `;
+    try {
+        const conn = connection ? connection : await db.getPool();
+        return (await conn.query(sqlBarcodes, [barcodes])).map(sku => sku.sku)
     }
     catch (err) {
         tools.logSqlError(err);
@@ -498,3 +645,21 @@ exports.getAllForBrand = async function(brandId) {
         throw (err)
     }
 };
+
+exports.createTransaction = async function() {
+    const conn = await db.getPool().getConnection();
+    await conn.beginTransaction();
+    return conn;
+}
+
+exports.commitTransaction = async function(conn) {
+    await conn.commit();
+}
+
+exports.releaseTransaction = async function(conn) {
+    await conn.release();
+}
+
+exports.rollbackTransaction = async function(conn) {
+    await conn.rollback();
+}
