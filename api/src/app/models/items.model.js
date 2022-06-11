@@ -306,10 +306,11 @@ exports.delete = async function (sku) {
         throw (err)
     }
 };
-exports.update = async function (itemChanges, sku) {
+exports.update = async function (itemChanges, sku, connection) {
     const sql = `UPDATE item SET ? WHERE sku = ?`;
     try {
-        const result = await db.getPool().query(sql, [tools.toUnderscoreCase(itemChanges), sku]);
+        const conn = connection ? connection : db.getPool();
+        const result = await conn.query(sql, [tools.toUnderscoreCase(itemChanges), sku]);
         if (result.affectedRows != 1) {
             throw Error(`Changed rows should be 1, it was actually ${result.changedRows}`);
         }

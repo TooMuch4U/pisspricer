@@ -155,3 +155,9 @@ exports.onlyInclude = function (data, includeKeys) {
     return newData;
 
 };
+
+exports.filterNulls = function (o) {
+    return Object.fromEntries(Object.entries(o)
+        .filter(([_, v]) => v != null )
+    )
+}

@@ -81,9 +81,10 @@ async function combineAllSkus(skus, connection) {
     const skuToKeep = skus[0];
     const otherSkus = skus.slice(1)
     const item = await ItemsModel.getBySku(skuToKeep, connection)
-    const data = {name: item.name};
     for (const sku of otherSkus) {
-        await ItemsModel.combineItems(skuToKeep, sku, data, true, connection);
+        const itemBeingDeleted = await ItemsModel.getBySku(sku, connection);
+        const updateData = {name: item.name, ...getNewItemValues(item, itemBeingDeleted)};
+        await ItemsModel.combineItems(skuToKeep, sku, updateData, true, connection);
     }
     return skuToKeep;
 }
@@ -104,26 +105,34 @@ async function createOrGetItem(internalSku, brandId, newItem, barcodes) {
         // try find from barcodes
         if (!item) {
             const skus = await ItemsModel.getSkusAssociatedWithBarcodes(barcodes, transactionConn);
+            let sku = null;
             if (skus.length > 1) {
-                const sku = await combineAllSkus(skus, transactionConn);
-                await addBarcodesToSku(barcodes, sku, transactionConn);
-                item = await ItemsModel.getBySku(sku, transactionConn);
+                sku = await combineAllSkus(skus, transactionConn);
             }
             else if (skus.length === 1) {
-                await addBarcodesToSku(barcodes, skus[0], transactionConn);
-                item = await ItemsModel.getBySku(skus[0], transactionConn);
+                sku = skus[0]
+            }
+            if (sku != null) {
+                item = await ItemsModel.getBySku(sku, transactionConn);
             }
         }
 
-        // item doesn't exist
-        // if (!item) {
-        //     item = await ItemsModel.getByBarcodes(barcodes, transactionConn);
-        // }
         let itemCreated = false;
         if (!item) {
             const sku = await create(newItem, barcodes, transactionConn);
             item = await getBySku(sku, transactionConn);
             itemCreated = true;
+        }
+        else {
+            // add any new barcodes to item
+            await addBarcodesToSku(barcodes, item.sku, transactionConn);
+
+            // add missing values
+            const newItemValues = getNewItemValues(item, newItem);
+            if (Object.keys(newItemValues).length > 0) {
+                await ItemsModel.update(newItemValues, item.sku, transactionConn)
+                item = await ItemsModel.getBySku(item.sku, transactionConn);
+            }
         }
 
         await Items.commitTransaction(transactionConn);
@@ -143,3 +152,19 @@ async function createOrGetItem(internalSku, brandId, newItem, barcodes) {
 
 }
 exports.createOrGetItem = createOrGetItem;
+
+function getNewItemValues(currentItem, newValues) {
+    const itemNoNulls = tools.filterNulls(currentItem);
+    const newItemValues =
+        Object.fromEntries(
+        Object.entries(
+            tools.filterNulls(newValues))
+            .filter(([k, _]) => !(k in itemNoNulls)
+            )
+        )
+    const allowedKeys = ['brand', 'stdDrinks', 'alcoholContent', 'volumeEach', 'packSize']
+    return Object.fromEntries(Object.entries(newItemValues)
+        .filter(([k, _]) => allowedKeys.includes(k) )
+    )
+}
+
