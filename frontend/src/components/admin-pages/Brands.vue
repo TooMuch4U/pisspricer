@@ -76,6 +76,7 @@
               </div>
               <div class="form-group text-left custom-file">
                 <input type="file" accept="image/*" @change="saveImage($event)" id="file-input">
+                <p class="text-muted">(jpg 204x204)</p>
               </div>
             </form>
           </div>
