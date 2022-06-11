@@ -621,7 +621,7 @@ exports.getByBarcodes = async function (barcodes, connection = null) {
 };
 
 exports.getSkusAssociatedWithBarcodes = async function (barcodes, connection = null) {
-    const sqlBarcodes = `SELECT sku FROM item_barcode WHERE ean in (?) `;
+    const sqlBarcodes = `SELECT distinct(sku) FROM item_barcode WHERE ean in (?) `;
     try {
         const conn = connection ? connection : await db.getPool();
         return (await conn.query(sqlBarcodes, [barcodes])).map(sku => sku.sku)
