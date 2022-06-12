@@ -8,6 +8,7 @@ RUN apt-get update && apt-get -y install cron
 COPY ./scraper /scraper
 COPY ./requirements.txt .
 COPY ./start.py .
+COPY ./start_all.py .
 COPY ./crontab .
 COPY ./scrapy.cfg .
 COPY .env .

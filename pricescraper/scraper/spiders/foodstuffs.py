@@ -5,6 +5,8 @@ from urllib.parse import urljoin
 from urllib.parse import urlparse
 import re
 
+import scrapy.responsetypes
+
 from .brand import AbstractBrandSpider
 from ..items.newworld import ItemAtPrice
 from ..items.pisspricer import Item, ItemPrice, FullItem, Store, Location
@@ -15,7 +17,8 @@ from ..services.images import process_response_content
 from ..services.pisspricer import PisspricerAdmin
 from ..pipelines.foodstuffs_transform import FoodstuffsItemTransformPipeline
 
-
+PROMOTIONS_API_URL = "https://api-prod.prod.fsniwaikato.kiwi"
+PROMOTIONS_API_PATH = "/prod/mobile/v1/promos"
 MOBILE_CATEGORIES_PATH = '/prod/mobile/v1/products/category'
 MOBILE_API_HEADERS = {
   'Host': '6q1kn3c1gb-dsn.algolia.net',
@@ -125,7 +128,7 @@ class AbstractFoodstuffsSpider(AbstractBrandSpider):
             store_loader.add_value('location', location_loader.load_item())
 
             store_item = store_loader.load_item()
-            self.store_dict[store_item['internalId'].replace('-', '')] = store_item
+            self.store_dict[store_item['internalId']] = store_item
 
         categories = self.get_categories()
         for category1, sub_cats in categories:
@@ -136,11 +139,12 @@ class AbstractFoodstuffsSpider(AbstractBrandSpider):
     def get_store_cookies(store):
         return {"STORE_ID_V2": store['id'], "eCom_STORE_ID": store['id']}
 
-    def parse_mobile_query_response(self, response):
+    def parse_mobile_query_response(self, response: scrapy.responsetypes.Response):
         resp_json = json.loads(response.text)
         n_hits = resp_json['nbHits']
         if n_hits > 1000:
             hi = "jio"
+        item_info_arr = []
         for item_json in resp_json['hits']:
 
             # create an ItemLoader to populate an Item
@@ -171,16 +175,19 @@ class AbstractFoodstuffsSpider(AbstractBrandSpider):
             internal_id = item_json.get("objectID")
 
             # get image if its new, else load item
-            image_url = self.get_image_url(internal_id)
-            if self._image_already_exists(image_url):
-                for item in self.load_item_prices(item_loader, item_json, internal_id):
-                    yield item
+            if self._image_already_exists(internal_id):
+                item_info_arr.append((item_json, item_loader, internal_id))
+
             else:
+                image_url = self.get_image_url(internal_id)
                 yield response.follow(
                     image_url,
                     callback=self.load_image,
                     meta={'item_loader': item_loader, 'item_json': item_json, 'internal_id': internal_id},
                     dont_filter=True)
+
+        for req in self.create_sale_price_requests(item_info_arr):
+            yield req
 
         page = resp_json['page']
         n_pages = resp_json['nbPages']
@@ -204,40 +211,67 @@ class AbstractFoodstuffsSpider(AbstractBrandSpider):
             meta={'category1': category1, 'category2': category2, 'page': page}
         )
 
+    def create_sale_price_requests(self, item_info_arr):
+        item_id_str = ','.join([internal_id for _, _, internal_id in item_info_arr])
+        for store_id in self.store_dict.keys():
+            query_param_string = f'?storeId={store_id}&products={item_id_str}'
+            yield Request(
+                urljoin(PROMOTIONS_API_URL, PROMOTIONS_API_PATH) + query_param_string,
+                callback=self.parse_sale_price_response,
+                method='GET',
+                dont_filter=True,
+                meta={'item_info': item_info_arr, 'store_id': store_id}
+            )
+
+    def parse_sale_price_response(self, response):
+        promotions_json = json.loads(response.text)
+        sale_prices = {promo['productId']: promo['price'] for promo in promotions_json['promotions'] if promo['quantity'] == 1}
+
+        item_info = response.meta.get("item_info")
+        store_id = response.meta.get('store_id')
+        store_id_without_dashes = store_id.replace('-', '')
+        for item_json, item_loader, internal_id in item_info:
+            if store_id_without_dashes in item_json['prices']:
+                sale_price = sale_prices.get(internal_id, None)
+                store = self.store_dict[store_id]
+                yield self.load_item_and_price(item_loader, internal_id, item_json, store, store_id_without_dashes, sale_price=sale_price)
+
     @staticmethod
     def get_image_url(internal_id):
         stripped_id = re.compile('[0-9]+-EA').match(internal_id).group().rstrip("-EA")
         return f"https://a.fsimg.co.nz/product/retail/fan/image/400x400/{stripped_id}.png"
 
-    def load_item_prices(self, item_loader, item_json, internal_id):
-        for store_id_str, price_str in item_json['prices'].items():
-            item_price_loader = ItemLoader(item=ItemPrice())
-            item_price_loader.default_output_processor = TakeFirst()
-            item_price_loader.add_value('price', float(price_str))
-            item_price_loader.add_value('internalSku', internal_id)
-            # todo: sale price
-            store = self.store_dict[store_id_str]
+    def load_item_and_price(self, item_loader, internal_id, item_json, store, store_id_without_dashes, sale_price=None):
+        price = float(item_json['prices'][store_id_without_dashes])
+        item_price_loader = ItemLoader(item=ItemPrice())
+        item_price_loader.default_output_processor = TakeFirst()
+        item_price_loader.add_value('price', price)
+        if sale_price is not None and float(sale_price) < price:
+            item_price_loader.add_value('salePrice', float(sale_price))
+        item_price_loader.add_value('internalSku', internal_id)
 
-            full_item_loader = ItemLoader(item=FullItem())
-            full_item_loader.default_output_processor = TakeFirst()
-            full_item_loader.add_value('itemPrice', item_price_loader.load_item())
-            full_item_loader.add_value('store', store)
-            full_item_loader.add_value('item', item_loader.load_item())
-            full_item = full_item_loader.load_item()
-            self.logger.debug(f"Item loaded: {full_item.get('item').get('name')}")
+        full_item_loader = ItemLoader(item=FullItem())
+        full_item_loader.default_output_processor = TakeFirst()
+        full_item_loader.add_value('itemPrice', item_price_loader.load_item())
+        full_item_loader.add_value('store', store)
+        full_item_loader.add_value('item', item_loader.load_item())
+        full_item = full_item_loader.load_item()
+        self.logger.debug(f"Item loaded: {full_item.get('item').get('name')}")
 
-            yield full_item
+        return full_item
 
     def load_image(self, response):
-        loader = response.meta.get('item_loader')
+        item_json = response.meta.get('item_json')
+        internal_id = response.meta.get('internal_id')
+        item_loader = response.meta.get('item_loader')
 
         # process image and encode as base64 string
         image_file = process_response_content(response.body)
         image = base64.b64encode(image_file)
 
         # add image to loader and load item
-        loader.add_value('image', image)
-        for item in self.load_item_prices(loader, response.meta.get('item_json'), response.meta.get('internal_id')):
+        item_loader.add_value('image', image)
+        for item in self.create_sale_price_requests([(item_json, item_loader, internal_id)]):
             yield item
 
     def load_item(self, loader):
