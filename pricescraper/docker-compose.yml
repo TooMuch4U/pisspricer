@@ -9,6 +9,7 @@ services:
       - pisspricer.name
       - pisspricer.password
       - pisspricer.url
+    restart: always
 
   api:
     build:
